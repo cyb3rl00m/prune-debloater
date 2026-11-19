@@ -120,6 +120,23 @@ jobs:
           name: emulator-results-api${{ matrix.api }}
           path: emulator-results/
 
+      # Also publish results to a throwaway branch: easier to fetch than artifacts from restricted networks.
+      - name: Publish results to the ci-results branch
+        if: always() && github.event_name != 'pull_request'
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/pub/apk
+          cp -r emulator-results /tmp/pub/ 2>/dev/null || true
+          gzip -9 /tmp/pub/emulator-results/logcat-*.txt 2>/dev/null || true
+          cp apks/dist/* /tmp/pub/apk/ 2>/dev/null || true
+          echo "${GITHUB_SHA}" > /tmp/pub/COMMIT
+          cd /tmp/pub
+          git init -q -b ci-results
+          git add -A
+          git -c user.name="ci" -c user.email="ci@users.noreply.github.com" commit -qm "CI results for ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-results
+
   release:
     name: Publish GitHub release
     if: startsWith(github.ref, 'refs/tags/v')

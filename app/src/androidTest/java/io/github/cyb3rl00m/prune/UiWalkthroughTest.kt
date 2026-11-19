@@ -1,6 +1,7 @@
 package io.github.cyb3rl00m.prune
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -57,8 +58,13 @@ class UiWalkthroughTest {
         Shots.take("01-home")
         click("tab_debloat"); waitTag("screen_debloat"); Shots.take("02-debloat")
         scrollTo("list_debloat", "level_2"); click("level_2"); waitTag("screen_customize"); Shots.take("03-customize-balanced")
-        click("review_changes"); waitTag("screen_review"); Shots.take("04-review-no-access")
-        click("back"); click("back")
+        // A stock emulator has few Samsung/Google packages: the Balanced list can be empty there.
+        val canReview = runCatching { rule.onNodeWithTag("review_changes").assertIsEnabled() }.isSuccess
+        if (canReview) {
+            click("review_changes"); waitTag("screen_review"); Shots.take("04-review-no-access")
+            click("back")
+        }
+        click("back")
         scrollTo("list_debloat", "level_4"); click("level_4"); waitTag("screen_customize"); Shots.take("05-customize-custom")
         click("back")
         click("tab_apps"); waitTag("screen_apps"); Shots.take("06-packages")
@@ -96,6 +102,7 @@ class UiWalkthroughTest {
             waitTag("screen_result", 60_000)
             assertEquals("enabled", repo.executor.packageState(pkg))
             click("done")
+            click("back")
             click("tab_restore"); waitTag("screen_restore"); Shots.take("15-restore-history")
         } finally {
             repo.access.testShell = null
