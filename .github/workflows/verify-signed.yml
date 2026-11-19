@@ -1,0 +1,44 @@
+name: verify-signed-apk
+
+# Installs and launches the final, locally signed release APK on an emulator.
+# Trigger: push a branch named release-check that contains apk/Prune-<version>.apk.
+on:
+  push:
+    branches: [release-check]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Signature
+        run: |
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$APKSIGNER" verify --print-certs --verbose apk/Prune-*.apk | tee signature.txt
+      - name: Install and launch
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash tools/verify-signed.sh
+      - name: Publish result
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/pub && cp -r verify-results signature.txt /tmp/pub/ 2>/dev/null || true
+          cd /tmp/pub && git init -q -b release-check-results && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "verify ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" release-check-results

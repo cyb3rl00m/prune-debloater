@@ -23,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -106,7 +108,12 @@ fun PruneRoot(vm: AppViewModel) {
     val access by vm.access.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { vm.messages.collect { snackbar.showSnackbar(it) } }
-    LaunchedEffect(access.usageAccess) { if (access.usageAccess) vm.rescan() }
+    // Usage access granted in Settings while Prune was in the background: rescan to load usage data.
+    var hadUsageAccess by remember { mutableStateOf(access.usageAccess) }
+    LaunchedEffect(access.usageAccess) {
+        if (access.usageAccess && !hadUsageAccess) vm.rescan()
+        hadUsageAccess = access.usageAccess
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },

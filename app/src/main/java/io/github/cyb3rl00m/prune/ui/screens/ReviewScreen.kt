@@ -59,8 +59,8 @@ fun ReviewScreen(vm: AppViewModel, nav: Nav) {
     val exec by vm.exec.collectAsStateWithLifecycle()
     val access by vm.access.collectAsStateWithLifecycle()
     val exporter = rememberTextExporter { ok -> vm.say(if (ok) "Script saved." else "Could not save the script.") }
-    var confirmedHigh by rememberSaveable { mutableStateOf(false) }
     val p = plan
+    var confirmedHigh by rememberSaveable(p?.createdAt) { mutableStateOf(false) }
 
     when (val e = exec) {
         is ExecState.Running -> {

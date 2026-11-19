@@ -2,7 +2,9 @@ package io.github.cyb3rl00m.prune.core.shell
 
 import android.content.ComponentName
 import android.content.ServiceConnection
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import io.github.cyb3rl00m.prune.BuildConfig
 import io.github.cyb3rl00m.prune.IShellService
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +15,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import rikka.shizuku.Shizuku
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /** Runs commands through a Shizuku user service (as shell, or as root if Shizuku was started with root). */
 class ShizukuShell(private val packageName: String) : PrivilegedShell {
@@ -55,7 +58,12 @@ class ShizukuShell(private val packageName: String) : PrivilegedShell {
                         }
                     }
                     connection = conn
-                    Shizuku.bindUserService(args, conn)
+                    // Shizuku delivers the connection callbacks on the main thread; bind from there too.
+                    Handler(Looper.getMainLooper()).post {
+                        runCatching { Shizuku.bindUserService(args, conn) }.onFailure { e ->
+                            if (cont.isActive) cont.resumeWithException(e)
+                        }
+                    }
                 }
             }
         }
