@@ -113,8 +113,9 @@ class EngineOnDeviceTest {
         assertEquals(e2.message, true, e2.success)
     }
 
-    @Test fun selfGrantAndHistory() {
+    @Test fun selfGrantPermissions() {
         repo.access.testShell = shell
+        repo.access.refresh()
         try {
             runBlocking { repo.access.grantSelfPermissions() }
             repo.access.refresh()
@@ -124,6 +125,5 @@ class EngineOnDeviceTest {
             repo.access.testShell = null
             repo.access.refresh()
         }
-        assertTrue(repo.history.state.value.batches.isNotEmpty() || true)
     }
 }
