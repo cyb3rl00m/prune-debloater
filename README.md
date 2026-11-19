@@ -27,6 +27,7 @@ Built for and first targeted at the **Galaxy S25 FE**, designed for Galaxy S, A 
   <img src="docs/screenshots/13-review-disable.png" width="200" alt="Review">
   <img src="docs/screenshots/07-optimize.png" width="200" alt="Optimize">
 </p>
+<p align="center"><sub>Screenshots from the Android emulator used in CI.</sub></p>
 
 ## Download
 

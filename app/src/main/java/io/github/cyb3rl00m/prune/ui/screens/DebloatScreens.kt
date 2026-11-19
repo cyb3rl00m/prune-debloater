@@ -155,7 +155,11 @@ fun CustomizeScreen(vm: AppViewModel, nav: Nav, level: DebloatLevel) {
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(10.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    vm.ecosystems.forEach { eco ->
+                    // Only features that exist on this phone.
+                    val present = remember(scan.apps) {
+                        scan.apps.filter { it.facts.installedForUser }.flatMap { it.classification.groups }.toSet()
+                    }
+                    vm.ecosystems.filter { it.key in present }.forEach { eco ->
                         val on = eco.key in o.usedEcosystems
                         FilterChip(
                             selected = on,
