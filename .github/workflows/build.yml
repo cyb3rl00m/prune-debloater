@@ -1,0 +1,144 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, unit tests, lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.PRUNE_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/prune-release.jks"
+            echo "PRUNE_KEYSTORE_FILE=$RUNNER_TEMP/prune-release.jks" >> "$GITHUB_ENV"
+          else
+            echo "No release keystore secret: release APK will be signed with the debug key."
+          fi
+
+      - name: Unit tests
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Build APKs
+        env:
+          PRUNE_KEYSTORE_PASSWORD: ${{ secrets.PRUNE_KEYSTORE_PASSWORD }}
+          PRUNE_KEY_ALIAS: ${{ secrets.PRUNE_KEY_ALIAS }}
+          PRUNE_KEY_PASSWORD: ${{ secrets.PRUNE_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease assembleDebug assembleDebugAndroidTest lintRelease
+
+      - name: Verify release signature
+        run: |
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$APKSIGNER" verify --print-certs --verbose app/build/outputs/apk/release/app-release.apk | head -20
+          VERSION=$(grep -m1 'versionName = ' app/build.gradle.kts | sed -E 's/.*"(.*)".*/\1/')
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/Prune-${VERSION}.apk"
+          sha256sum dist/*.apk | tee dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: |
+            dist/
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+
+  emulator:
+    name: Emulator tests (API ${{ matrix.api }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [35]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apks
+          path: apks
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash tools/ci-emulator.sh apks
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-results-api${{ matrix.api }}
+          path: emulator-results/
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, emulator]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: apks
+          path: apks
+      - name: Attach APK to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            NOTES="docs/release-notes/${TAG}.md"
+            if [ -f "$NOTES" ]; then gh release create "$TAG" --title "Prune ${TAG#v}" --notes-file "$NOTES";
+            else gh release create "$TAG" --title "Prune ${TAG#v}" --generate-notes; fi
+          fi
+          gh release upload "$TAG" apks/dist/*.apk apks/dist/SHA256SUMS.txt --clobber
