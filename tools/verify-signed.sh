@@ -5,7 +5,13 @@ mkdir -p "$OUT"
 STATUS=0
 adb wait-for-device
 APK=$(ls apk/Prune-*.apk | head -1)
-adb install "$APK" | tee "$OUT/install.txt" || STATUS=1
+# Optional upgrade test: apk/upgrade-from.apk is installed first, then the new APK over it.
+if [ -f apk/upgrade-from.apk ]; then
+  adb install apk/upgrade-from.apk | tee "$OUT/install-old.txt" || STATUS=1
+  adb shell am start -W -n io.github.cyb3rl00m.prune/.MainActivity > /dev/null; sleep 6
+  adb shell dumpsys package io.github.cyb3rl00m.prune | grep -m1 versionName | tee "$OUT/old-version.txt"
+fi
+adb install -r "$APK" | tee "$OUT/install.txt" || STATUS=1
 grep -q Success "$OUT/install.txt" || STATUS=1
 adb shell dumpsys package io.github.cyb3rl00m.prune | grep -E "versionName|versionCode|signatures" | tee "$OUT/package.txt"
 adb logcat -c
