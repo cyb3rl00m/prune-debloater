@@ -187,7 +187,7 @@ fun OptimizeSectionScreen(vm: AppViewModel, ovm: OptimizeViewModel, nav: Nav, se
                     if (e.systemManaged.isNotEmpty()) {
                         item { SectionHeader("Exempted by the system (${e.systemManaged.size})") }
                         item {
-                            Text("Android or Samsung exempt these themselves. They cannot be changed from here.",
+                            Text("Android or the manufacturer exempt these themselves. They cannot be changed from here.",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         items(e.systemManaged, key = { "sys" + it.packageName }) { PackageRow(it) }

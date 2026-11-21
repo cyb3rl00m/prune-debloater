@@ -2,13 +2,21 @@ package io.github.cyb3rl00m.prune.core.device
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.telephony.TelephonyManager
-import java.util.concurrent.TimeUnit
+import io.github.cyb3rl00m.prune.core.oem.CompatLevel
+import io.github.cyb3rl00m.prune.core.oem.DeviceIdentity
+import io.github.cyb3rl00m.prune.core.oem.Firmware
+import io.github.cyb3rl00m.prune.core.oem.OemIntegration
+import io.github.cyb3rl00m.prune.core.oem.OemRegistry
+import io.github.cyb3rl00m.prune.core.oem.SamsungIntegration
+import io.github.cyb3rl00m.prune.core.oem.ServicesInfo
 
 data class DeviceInfo(
+    val identity: DeviceIdentity,
+    val integration: OemIntegration,
+    val brandName: String,
     val manufacturer: String,
     val brand: String,
     val model: String,
@@ -16,55 +24,62 @@ data class DeviceInfo(
     val device: String,
     val androidVersion: String,
     val sdkInt: Int,
-    val oneUiVersion: String?,
+    val firmware: Firmware?,
     val buildNumber: String,
     val securityPatch: String,
     val cscCode: String?,
     val cscCountry: String?,
     val carrier: String?,
-    val isSamsung: Boolean,
+    val services: ServicesInfo,
     val totalRamBytes: Long,
     val storageTotalBytes: Long,
     val storageFreeBytes: Long,
     val userId: Int,
 ) {
+    val isSamsung: Boolean get() = integration == SamsungIntegration
+    val isEmulator: Boolean get() = identity.isEmulator
+    val compat: CompatLevel get() = integration.compat
     val displayName: String get() = if (marketName != model) "$marketName ($model)" else model
+    /** "Samsung Galaxy S25 FE", "Redmi Note 13", "Pixel 9", "Motorola moto g84"... */
+    val fullName: String get() = when {
+        marketName.startsWith(brandName, ignoreCase = true) -> marketName
+        isSamsung && marketName.startsWith("Galaxy") -> "Samsung $marketName"
+        marketName.contains(brandName.substringAfterLast(' '), ignoreCase = true) -> marketName
+        else -> "$brandName $marketName"
+    }
 }
 
 object DeviceInfoReader {
 
-    fun read(context: Context): DeviceInfo {
-        val props = SystemProps.getAll(
-            listOf(
-                "ro.build.version.oneui", "ro.csc.sales_code", "ro.boot.sales_code", "ro.csc.country_code",
-                "ro.product.marketname", "ro.product.vendor.marketname", "ro.product.system.marketname",
-            )
-        )
-        val oneUi = OneUi.fromProperty(props["ro.build.version.oneui"]) ?: OneUi.fromSemPlatformInt(semPlatformInt())
+    fun read(context: Context, identity: DeviceIdentity = DeviceIdentity.read()): DeviceInfo {
+        val integration = OemRegistry.detect(identity)
         val am = context.getSystemService(ActivityManager::class.java)
-        val mem = ActivityManager.MemoryInfo().also { am?.getMemoryInfo(it) }
+        val mem = ActivityManager.MemoryInfo().also { runCatching { am?.getMemoryInfo(it) } }
         val stat = runCatching { StatFs(Environment.getDataDirectory().path) }.getOrNull()
         val tm = context.getSystemService(TelephonyManager::class.java)
         val carrier = runCatching { tm?.simOperatorName?.takeIf { it.isNotBlank() } ?: tm?.networkOperatorName }
             .getOrNull()?.takeIf { it.isNotBlank() }
-        val marketProp = listOf("ro.product.marketname", "ro.product.vendor.marketname", "ro.product.system.marketname")
-            .firstNotNullOfOrNull { props[it]?.takeIf { v -> v.isNotBlank() } }
-        val isSamsung = Build.MANUFACTURER.equals("samsung", ignoreCase = true)
+        val marketProp = listOf("ro.product.marketname", "ro.product.vendor.marketname", "ro.product.system.marketname",
+            "ro.product.odm.marketname", "ro.config.marketing_name")
+            .firstNotNullOfOrNull { identity.prop(it) }
         return DeviceInfo(
-            manufacturer = Build.MANUFACTURER,
-            brand = Build.BRAND,
-            model = Build.MODEL,
-            marketName = marketProp ?: SamsungModels.marketName(Build.MODEL) ?: Build.MODEL,
-            device = Build.DEVICE,
-            androidVersion = Build.VERSION.RELEASE,
-            sdkInt = Build.VERSION.SDK_INT,
-            oneUiVersion = if (isSamsung) oneUi else null,
-            buildNumber = Build.DISPLAY,
-            securityPatch = Build.VERSION.SECURITY_PATCH,
-            cscCode = (props["ro.csc.sales_code"] ?: props["ro.boot.sales_code"])?.takeIf { it.isNotBlank() },
-            cscCountry = props["ro.csc.country_code"]?.takeIf { it.isNotBlank() },
+            identity = identity,
+            integration = integration,
+            brandName = runCatching { integration.brandName(identity) }.getOrDefault(identity.brand),
+            manufacturer = identity.manufacturer,
+            brand = identity.brand,
+            model = identity.model,
+            marketName = marketProp ?: SamsungModels.marketName(identity.model) ?: identity.model,
+            device = identity.device,
+            androidVersion = identity.release,
+            sdkInt = identity.sdkInt,
+            firmware = OemRegistry.firmwareSafe(integration, identity),
+            buildNumber = identity.display,
+            securityPatch = android.os.Build.VERSION.SECURITY_PATCH.orEmpty(),
+            cscCode = if (integration == SamsungIntegration) identity.prop("ro.csc.sales_code") ?: identity.prop("ro.boot.sales_code") else null,
+            cscCountry = if (integration == SamsungIntegration) identity.prop("ro.csc.country_code") else null,
             carrier = carrier,
-            isSamsung = isSamsung,
+            services = services(context),
             totalRamBytes = mem.totalMem,
             storageTotalBytes = stat?.totalBytes ?: 0,
             storageFreeBytes = stat?.availableBytes ?: 0,
@@ -72,10 +87,20 @@ object DeviceInfoReader {
         )
     }
 
-    /** Samsung adds Build.VERSION.SEM_PLATFORM_INT to its firmware. Not present on other phones. */
-    private fun semPlatformInt(): Int? = runCatching {
-        Build.VERSION::class.java.getField("SEM_PLATFORM_INT").getInt(null)
-    }.getOrNull()
+    /** Google and Huawei/Honor service frameworks, detected from installed, enabled packages (no Play Services API). */
+    fun services(context: Context): ServicesInfo {
+        val pm = context.packageManager
+        fun enabled(pkg: String) = runCatching {
+            @Suppress("DEPRECATION")
+            pm.getApplicationInfo(pkg, 0).enabled
+        }.getOrDefault(false)
+        return ServicesInfo(
+            gms = enabled("com.google.android.gms"),
+            playStore = enabled("com.android.vending"),
+            hms = enabled("com.huawei.hwid"),
+            honorServices = enabled("com.hihonor.id"),
+        )
+    }
 }
 
 /** One UI version decoding. Pure functions, unit tested. */
@@ -100,20 +125,7 @@ object OneUi {
     }
 }
 
-/** Reads system properties with the public `getprop` tool (no hidden APIs). */
-object SystemProps {
-    fun getAll(names: List<String>): Map<String, String> = names.associateWith { get(it) ?: "" }
-        .filterValues { it.isNotEmpty() }
-
-    fun get(name: String): String? = runCatching {
-        val p = ProcessBuilder("/system/bin/getprop", name).redirectErrorStream(true).start()
-        val out = p.inputStream.bufferedReader().readText().trim()
-        if (!p.waitFor(2, TimeUnit.SECONDS)) p.destroy()
-        out.ifEmpty { null }
-    }.getOrNull()
-}
-
-/** Marketing names for model numbers whose firmware does not report one. */
+/** Marketing names for Samsung model numbers whose firmware does not report one. */
 object SamsungModels {
     private val names = linkedMapOf(
         "SM-S731" to "Galaxy S25 FE", "SM-S937" to "Galaxy S25 Edge", "SM-S938" to "Galaxy S25 Ultra",

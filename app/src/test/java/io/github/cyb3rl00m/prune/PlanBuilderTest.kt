@@ -15,11 +15,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlanBuilderTest {
-    private val all = TestData.db.rules.ecosystems.map { it.key }.toSet()
+    private val all = TestData.db.ecosystems.map { it.key }.toSet()
 
     /** A realistic Galaxy package set: every curated entry, every locked id, plus some community entries. */
     private val apps by lazy {
-        val ids = TestData.db.rules.entries.keys + TestData.db.rules.locked.map { it.id } +
+        val ids = TestData.curated.map { it.key } + TestData.locked.map { it.id } +
             TestData.db.uad.keys.filter { it.startsWith("com.samsung") || it.startsWith("com.google") }.take(400)
         ids.distinct().map { TestData.app(it) }
     }
@@ -46,7 +46,7 @@ class PlanBuilderTest {
     @Test fun highRiskNeverPreselected() {
         val cands = PlanBuilder.candidates(apps, ProfileOptions.defaults(DebloatLevel.CUSTOM, emptySet()).copy(includeGoogle = true))
         assertTrue(cands.any { it.app.risk == Risk.HIGH })
-        assertTrue(cands.filter { it.app.risk == Risk.HIGH }.none { it.selected })
+        assertTrue(cands.filter { it.app.classification.needsCare }.none { it.selected })
     }
 
     @Test fun usedEcosystemsAreKept() {

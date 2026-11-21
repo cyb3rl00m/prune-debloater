@@ -83,18 +83,19 @@ private val LightColors = lightColorScheme(
 )
 
 @Immutable
-data class RiskColors(val safe: Color, val low: Color, val moderate: Color, val high: Color, val locked: Color) {
+data class RiskColors(val safe: Color, val low: Color, val moderate: Color, val high: Color, val locked: Color, val unknown: Color) {
     fun of(r: Risk) = when (r) {
         Risk.SAFE -> safe
         Risk.LOW -> low
         Risk.MODERATE -> moderate
         Risk.HIGH -> high
+        Risk.UNKNOWN -> unknown
         Risk.LOCKED -> locked
     }
 }
 
-private val DarkRisk = RiskColors(Mint, Color(0xFF5CC8FF), Color(0xFFFFB547), Color(0xFFFF6B57), Color(0xFF8A94A6))
-private val LightRisk = RiskColors(MintDeep, Color(0xFF0B84C6), Color(0xFFB86E00), Color(0xFFD1402B), Color(0xFF6B7587))
+private val DarkRisk = RiskColors(Mint, Color(0xFF5CC8FF), Color(0xFFFFB547), Color(0xFFFF6B57), Color(0xFF8A94A6), Color(0xFFC59BFF))
+private val LightRisk = RiskColors(MintDeep, Color(0xFF0B84C6), Color(0xFFB86E00), Color(0xFFD1402B), Color(0xFF6B7587), Color(0xFF7A4FD0))
 
 val LocalRiskColors = staticCompositionLocalOf { DarkRisk }
 

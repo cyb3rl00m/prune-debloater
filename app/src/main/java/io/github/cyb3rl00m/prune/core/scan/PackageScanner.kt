@@ -19,6 +19,9 @@ class PackageScanner(private val context: Context) {
 
     private val pm: PackageManager = context.packageManager
 
+    /** Labels are the slowest part of a scan: cache them per package version. */
+    private val labelCache = java.util.concurrent.ConcurrentHashMap<String, Pair<Long, String>>()
+
     @Suppress("DEPRECATION")
     fun scan(): List<PackageFacts> {
         val flags = PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.MATCH_DISABLED_COMPONENTS
@@ -53,8 +56,9 @@ class PackageScanner(private val context: Context) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
             else -> ai.enabled
         }
-        val label = runCatching { ai.loadLabel(pm).toString() }.getOrNull()?.takeIf { it.isNotBlank() }
-            ?: info.packageName
+        val label = labelCache[info.packageName]?.takeIf { it.first == info.lastUpdateTime }?.second
+            ?: (runCatching { ai.loadLabel(pm).toString() }.getOrNull()?.takeIf { it.isNotBlank() } ?: info.packageName)
+                .also { labelCache[info.packageName] = info.lastUpdateTime to it }
         return PackageFacts(
             packageName = info.packageName,
             label = label,
@@ -67,8 +71,15 @@ class PackageScanner(private val context: Context) {
             versionName = info.versionName,
             uid = ai.uid,
             hasLauncherActivity = launchable?.contains(info.packageName) ?: false,
+            installer = installerOf(info.packageName),
         )
     }
+
+    @Suppress("DEPRECATION")
+    private fun installerOf(pkg: String): String? = runCatching {
+        if (Build.VERSION.SDK_INT >= 30) pm.getInstallSourceInfo(pkg).installingPackageName
+        else pm.getInstallerPackageName(pkg)
+    }.getOrNull()
 
     @Suppress("DEPRECATION")
     private fun launchablePackages(): Set<String> = runCatching {
@@ -81,7 +92,7 @@ class PackageScanner(private val context: Context) {
 
     /** Packages this phone currently depends on: default apps, the keyboard, device admins and more. */
     @Suppress("DEPRECATION")
-    fun dynamicProtections(): DynamicProtections {
+    fun dynamicProtections(extraLocked: Map<String, String> = emptyMap()): DynamicProtections {
         val locked = linkedMapOf<String, String>()
         val inUse = linkedMapOf<String, String>()
         fun resolve(intent: Intent): String? = runCatching {
@@ -118,6 +129,7 @@ class PackageScanner(private val context: Context) {
         runCatching { android.app.WallpaperManager.getInstance(context).wallpaperInfo?.packageName }.getOrNull()
             ?.let { inUse.putIfAbsent(it, "Provides your current live wallpaper.") }
 
+        extraLocked.forEach { (pkg, reason) -> locked.putIfAbsent(pkg, reason) }
         locked[context.packageName] = "Prune itself."
         return DynamicProtections(locked = locked, inUse = inUse)
     }

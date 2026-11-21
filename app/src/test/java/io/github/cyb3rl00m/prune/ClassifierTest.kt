@@ -14,8 +14,10 @@ class ClassifierTest {
     private val c = TestData.classifier
 
     @Test fun databaseLoads() {
-        assertTrue(TestData.db.uad.size > 1500)
-        assertTrue(TestData.db.rules.entries.size > 150)
+        assertTrue(TestData.db.uad.size > 5000)
+        assertTrue(TestData.db.curatedCount > 300)
+        assertEquals("core.json", TestData.ruleFiles.first())
+        assertEquals(TestData.ruleFiles.size, TestData.db.files.size)
     }
 
     @Test fun criticalPackagesAreLocked() {
@@ -76,16 +78,18 @@ class ClassifierTest {
     }
 
     @Test fun highRiskIsCustomOnly() {
-        for ((pkg, e) in TestData.db.rules.entries) {
+        for ((pkg, e) in TestData.curated) {
             if (e.risk == "HIGH") assertEquals(pkg, 4, c.classify(TestData.facts(pkg)).level)
         }
     }
 
-    @Test fun unknownSystemPackageIsHighRiskCustomOnly() {
+    @Test fun unknownSystemPackageIsUnknownCustomOnly() {
         val r = c.classify(TestData.facts("com.samsung.android.totally.unknown.thing"))
-        assertEquals(Risk.HIGH, r.risk)
+        assertEquals(Risk.UNKNOWN, r.risk)
         assertEquals(4, r.level)
-        assertEquals(Source.SAMSUNG, r.source)
+        assertEquals(Source.OEM, r.source)
+        assertEquals("Samsung", r.manufacturer)
+        assertTrue(r.needsCare)
     }
 
     @Test fun userAppsAreNotPartOfProfiles() {

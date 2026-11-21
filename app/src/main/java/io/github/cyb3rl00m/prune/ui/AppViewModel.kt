@@ -59,7 +59,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val history: StateFlow<HistoryFile> = repo.history.state
     val settings: StateFlow<AppSettings> = repo.settings.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
 
-    val ecosystems get() = repo.database.rules.ecosystems
+    val ecosystems get() = repo.database.ecosystems
     val allEcosystemKeys get() = ecosystems.map { it.key }.toSet()
 
     private val _draft = MutableStateFlow<Plan?>(null)
@@ -88,7 +88,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun say(msg: String) { _messages.tryEmit(msg) }
 
-    fun usedEcosystems(): Set<String> = settings.value.usedEcosystems ?: allEcosystemKeys
+    fun usedEcosystems(): Set<String> = io.github.cyb3rl00m.prune.core.settings.SettingsStore.effectiveUsed(settings.value, allEcosystemKeys)
 
     // ---------- Debloat profiles ----------
 
@@ -104,7 +104,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun updateProfileOptions(options: ProfileOptions) {
         rebuildProfile(options, _profile.value?.overrides.orEmpty())
         if (options.usedEcosystems != usedEcosystems()) {
-            viewModelScope.launch { repo.settings.setUsedEcosystems(options.usedEcosystems) }
+            viewModelScope.launch { repo.settings.setUsedEcosystems(options.usedEcosystems, allEcosystemKeys) }
         }
     }
 
@@ -271,6 +271,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 appendLine("adb shell " + Commands.toShell(Commands.enable(a.packageName, user)))
             }
         }
+    }
+
+    // ---------- Compatibility ----------
+
+    fun compatibilityReport(): io.github.cyb3rl00m.prune.core.oem.CompatibilityReport? {
+        val d = device.value ?: return null
+        val a = access.value
+        return io.github.cyb3rl00m.prune.core.oem.CompatibilityReport.build(
+            device = d.fullName + if (d.marketName != d.model) " (${d.model})" else "",
+            identity = d.identity, integration = d.integration, firmware = d.firmware, services = d.services,
+            access = io.github.cyb3rl00m.prune.core.oem.AccessSnapshot(
+                tier = "${a.active.label} (${a.active.tier})", privileged = a.privileged, shizukuInstalled = a.shizukuInstalled,
+                shizukuRunning = a.shizukuRunning, shizukuAuthorized = a.shizukuPermission, root = a.rootGranted,
+                usageAccess = a.usageAccess, writeSecureSettings = a.writeSecureSettings,
+            ),
+            history = history.value,
+        )
     }
 
     // ---------- Settings ----------

@@ -59,6 +59,7 @@ private fun StatusLine(done: Boolean, title: String, detail: String) {
 @Composable
 fun SetupScreen(vm: AppViewModel, nav: Nav) {
     val access by vm.access.collectAsStateWithLifecycle()
+    val device by vm.device.collectAsStateWithLifecycle()
     val context = LocalContext.current
     fun open(intent: Intent) = try { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: ActivityNotFoundException) {
         vm.say("Could not open that screen on this phone.")
@@ -104,16 +105,17 @@ fun SetupScreen(vm: AppViewModel, nav: Nav) {
         }
         item {
             PruneCard {
-                Text("Start Shizuku on a Galaxy phone (no computer needed)", style = MaterialTheme.typography.titleSmall)
+                Text("Start Shizuku on ${device?.brandName ?: "this phone"} (no computer needed)", style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(6.dp))
-                listOf(
-                    "Settings → About phone → Software information → tap Build number 7 times (enter your PIN). Developer options appear.",
-                    "Connect to Wi-Fi. Settings → Developer options → turn on Wireless debugging.",
+                val integration = vm.repo.integration
+                val identity = vm.repo.identity
+                (integration.developerOptionsSteps + listOf(
+                    "Connect to Wi-Fi. In Developer options turn on Wireless debugging (Android 11+; on older versions use the computer method below).",
                     "Open Shizuku → Start via Wireless debugging → Pairing. Shizuku shows a notification.",
                     "In Wireless debugging, tap Pair device with pairing code. Type the code into Shizuku's notification.",
                     "In Shizuku tap Start. Then come back here and tap Authorize Prune.",
                     "After a reboot, open Shizuku and tap Start again (pairing is remembered).",
-                ).forEachIndexed { i, s -> Text("${i + 1}. $s", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 3.dp)) }
+                ) + runCatching { integration.extraSetupSteps(identity) }.getOrDefault(emptyList())).forEachIndexed { i, s -> Text("${i + 1}. $s", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 3.dp)) }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { open(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }, modifier = Modifier.fillMaxWidth()) {
                     Text("Open Developer options")
@@ -148,7 +150,7 @@ fun SetupScreen(vm: AppViewModel, nav: Nav) {
         item { SectionHeader("Root (optional)") }
         item {
             PruneCard {
-                StatusLine(access.rootGranted, "Root access", "Only if the phone is rooted (Magisk, KernelSU, APatch). Rooting a Galaxy trips Knox permanently: Samsung Wallet, Secure Folder and Samsung Health stop working. Prune never asks you to root.")
+                StatusLine(access.rootGranted, "Root access", "Only if the phone is rooted (Magisk, KernelSU, APatch). Rooting usually needs an unlocked bootloader, can break banking and payment apps, and on Samsung trips Knox permanently. Prune never asks you to root.")
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { vm.requestRoot() }, modifier = Modifier.fillMaxWidth()) { Text("Request root access") }
             }
@@ -189,7 +191,7 @@ fun SettingsScreen(vm: AppViewModel, nav: Nav) {
                         }
                     }
                 }
-                OptionSwitch("Fallback to uninstall-for-user", "One UI refuses to disable some packages. Uninstall them for this user instead (also reversible).",
+                OptionSwitch("Fallback to uninstall-for-user", "Some firmwares (One UI, EMUI, MagicOS) refuse to disable some packages. Uninstall them for this user instead (also reversible).",
                     s.fallbackUninstall) { vm.update { setFallback(it) } }
                 OptionSwitch("Skip recently used apps", "Don't pre-select apps opened in the last ${s.skipUsedWithinDays} days.",
                     s.skipUsedWithinDays > 0) { vm.update { setSkipDays(if (it) 14 else 0) } }
@@ -200,7 +202,7 @@ fun SettingsScreen(vm: AppViewModel, nav: Nav) {
         item {
             PruneCard {
                 KeyValue("Version", BuildConfig.VERSION_NAME)
-                KeyValue("Package database", "${vm.repo.database.rules.updated} · ${vm.repo.database.uad.size} community entries · ${vm.repo.database.rules.entries.size} curated")
+                KeyValue("Package database", "${vm.repo.database.updated} · ${vm.repo.database.uad.size} community entries · ${vm.repo.database.curatedCount} curated in ${vm.repo.database.files.size} rule files")
                 KeyValue("License", "GPL-3.0-or-later")
                 Spacer(Modifier.height(8.dp))
                 Text("Package descriptions come from the Universal Android Debloater Next Generation community list (GPL-3.0). Prune's own safety rules always override it.",
@@ -213,10 +215,12 @@ fun SettingsScreen(vm: AppViewModel, nav: Nav) {
                 OutlinedButton(onClick = { nav.go(Routes.SETUP) }, modifier = Modifier.fillMaxWidth()) { Text("Access setup") }
                 Spacer(Modifier.height(6.dp))
                 OutlinedButton(onClick = { nav.go(Routes.DEVICE) }, modifier = Modifier.fillMaxWidth()) { Text("Device information") }
+                Spacer(Modifier.height(6.dp))
+                OutlinedButton(onClick = { nav.go(Routes.COMPAT) }, modifier = Modifier.fillMaxWidth().testTag("open_compat")) { Text("Compatibility report") }
             }
         }
         item {
-            Text("Prune is not affiliated with Samsung or Google. Samsung, Galaxy and One UI are trademarks of Samsung Electronics.",
+            Text("Prune is not affiliated with any phone manufacturer or with Google. Brand and product names are trademarks of their owners.",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(4.dp))
         }
     }
@@ -235,12 +239,15 @@ fun DeviceScreen(vm: AppViewModel, nav: Nav) {
         }
         item {
             PruneCard {
-                KeyValue("Model", dev.marketName)
+                KeyValue("Model", dev.fullName)
                 KeyValue("Model number", dev.model)
                 KeyValue("Device code", dev.device)
                 KeyValue("Manufacturer", dev.manufacturer)
+                KeyValue("Brand", dev.brand)
                 KeyValue("Android", "${dev.androidVersion} (API ${dev.sdkInt})")
-                KeyValue("One UI", dev.oneUiVersion ?: if (dev.isSamsung) "Unknown" else "Not Samsung")
+                KeyValue("Firmware", dev.firmware?.toString() ?: "Not detected")
+                KeyValue("Integration", "${dev.integration.title} · ${dev.compat.label}")
+                KeyValue("Google services", if (dev.services.gms) "Installed" else "Not available")
                 KeyValue("Build", dev.buildNumber)
                 KeyValue("Security patch", dev.securityPatch)
                 KeyValue("CSC (region/carrier code)", listOfNotNull(dev.cscCode, dev.cscCountry).joinToString(" · ").ifEmpty { "Unknown" })

@@ -1,0 +1,49 @@
+{
+ "manufacturer": "Honor",
+ "comment": "Honor phones after the 2020 split from Huawei (MagicOS, package prefix com.hihonor). Older Honor phones use the Huawei file.",
+ "locked": [
+  {
+   "id": "com.hihonor.ouc",
+   "reason": "System update client (OTA)."
+  }
+ ],
+ "ecosystems": [
+  {
+   "key": "HONOR_ID",
+   "name": "Honor ID & Cloud",
+   "warning": "Honor ID sign-in, Honor Cloud and apps that use Honor Mobile Services can stop working.",
+   "packages": [
+    "com.hihonor.id",
+    "com.hihonor.cloud",
+    "com.hihonor.hnid"
+   ]
+  }
+ ],
+ "entries": {
+  "com.hihonor.phoneservice": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "My Honor (support)."
+  },
+  "com.hihonor.gameassistant": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Game Suite."
+  },
+  "com.hihonor.appmarket": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Honor App Market. Apps installed from it no longer update."
+  },
+  "com.hihonor.id": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Honor Mobile Services: apps from Honor's store depend on it."
+  }
+ },
+ "schema": 2,
+ "updated": "2026-11-21",
+ "lockedPrefixes": [],
+ "featureTags": [],
+ "prefixEntries": []
+}

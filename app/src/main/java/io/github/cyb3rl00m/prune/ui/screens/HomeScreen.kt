@@ -76,7 +76,7 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
 
     ScreenScaffold(
         title = "Prune", nav = null, tag = "home",
-        subtitle = "Debloater & optimizer for Samsung Galaxy",
+        subtitle = "Android debloater & optimizer",
         actions = {
             IconButton(onClick = { vm.rescan() }, modifier = Modifier.testTag("rescan")) { Icon(Icons.Outlined.Refresh, "Scan again") }
             IconButton(onClick = { nav.go(Routes.SETTINGS) }, modifier = Modifier.testTag("open_settings")) { Icon(Icons.Outlined.Settings, "Settings") }
@@ -85,24 +85,28 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
         item {
             val brush = Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
                 MaterialTheme.colorScheme.secondary.copy(alpha = 0.20f)))
-            PruneCard(onClick = { nav.go(Routes.DEVICE) }, padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+            PruneCard(onClick = { nav.go(Routes.COMPAT) }, padding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                modifier = Modifier.testTag("device_card")) {
                 Box(Modifier.fillMaxWidth().background(brush).padding(20.dp)) {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Smartphone, null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(8.dp))
-                            Text(if (device?.isSamsung == false) "Not a Samsung device" else "Samsung Galaxy",
-                                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                            Text(device?.brandName ?: "Detecting device…",
+                                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f))
+                            device?.let { Pill(it.compat.label, compatColor(it.compat)) }
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text(device?.marketName ?: "Reading device…", style = MaterialTheme.typography.headlineMedium)
+                        Text(device?.fullName ?: "Reading device…", style = MaterialTheme.typography.headlineMedium)
                         Text(device?.model ?: "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             device?.let { d ->
                                 Pill("Android ${d.androidVersion}", MaterialTheme.colorScheme.onSurface)
-                                d.oneUiVersion?.let { Pill("One UI $it", MaterialTheme.colorScheme.onSurface) }
+                                d.firmware?.takeIf { it.name != "Android" }?.let { Pill(it.toString(), MaterialTheme.colorScheme.onSurface) }
                                 d.cscCode?.let { Pill("CSC $it", MaterialTheme.colorScheme.onSurface) }
+                                if (!d.services.gms) Pill("No Google services", MaterialTheme.colorScheme.tertiary)
                             }
                         }
                     }
@@ -110,8 +114,17 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
             }
         }
 
-        if (device?.isSamsung == false) item {
-            Banner("Prune is built for Samsung Galaxy phones. Android packages and the safety rules still apply, but Samsung-specific recommendations will not.", BannerKind.WARNING)
+        device?.takeIf { it.compat == io.github.cyb3rl00m.prune.core.oem.CompatLevel.EXPERIMENTAL ||
+            it.compat == io.github.cyb3rl00m.prune.core.oem.CompatLevel.GENERIC }?.let { d ->
+            item {
+                Banner(
+                    if (d.compat == io.github.cyb3rl00m.prune.core.oem.CompatLevel.EXPERIMENTAL)
+                        "${d.integration.title}: experimental support. Prune has dedicated rules for this brand, but they are not tested on real hardware yet. Review every change."
+                    else "${d.brandName}: generic compatibility. Prune uses its generic Android rules and the community database for this brand. Review every change.",
+                    BannerKind.WARNING,
+                    action = { androidx.compose.material3.TextButton(onClick = { nav.go(Routes.COMPAT) }) { Text("Compatibility report") } },
+                )
+            }
         }
 
         item {
@@ -158,6 +171,21 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
             }
         }
 
+        if (scan.duplicates.isNotEmpty()) item {
+            PruneCard(onClick = { nav.go(Routes.DUPLICATES) }, modifier = Modifier.testTag("duplicates_card")) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Apps, null, tint = MaterialTheme.colorScheme.secondary)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("${scan.duplicates.size} app types installed more than once", style = MaterialTheme.typography.titleSmall)
+                        Text(scan.duplicates.take(3).joinToString { it.name } + if (scan.duplicates.size > 3) "…" else "",
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
         item { SectionHeader("Optimization recommendations") }
         if (recommendations.isEmpty()) item {
             PruneCard { Text(if (scan.scanning) "Scanning…" else "No recommendations right now.", style = MaterialTheme.typography.bodyMedium) }
@@ -180,7 +208,7 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
         scan.error?.let { e -> item { Banner("Scan failed: $e", BannerKind.ERROR) } }
         item {
             Text(
-                if (scan.lastScan == 0L) "Scanning packages…" else "Last scan ${java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(scan.lastScan))} · database ${vm.repo.database.rules.updated}",
+                if (scan.lastScan == 0L) "Scanning packages…" else "Last scan ${java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(scan.lastScan))} · database ${vm.repo.database.updated}",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp, start = 4.dp),
             )

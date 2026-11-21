@@ -1,0 +1,53 @@
+{
+ "manufacturer": "Other brands",
+ "comment": "Sony, Nothing, ASUS, vivo, Tecno, Infinix, itel, Nokia/HMD, Lenovo, ZTE: Prune relies on the community data and the generic rules for these brands. Only packages that are known to matter are listed here.",
+ "locked": [
+  {
+   "id": "com.vivo.permissionmanager",
+   "reason": "vivo permission manager."
+  }
+ ],
+ "entries": {
+  "com.iqoo.secure": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "vivo i Manager: security, permissions and data usage."
+  },
+  "com.asus.mobilemanager": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "ASUS Mobile Manager: permissions and battery management."
+  },
+  "com.transsion.phonemaster": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Phone Master: cleaning, battery and permission management on Tecno, Infinix and itel."
+  },
+  "com.vivo.appstore": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "vivo App Store."
+  },
+  "com.vivo.browser": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "vivo Browser. Make sure another browser is installed."
+  },
+  "com.transsion.carlcare": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Carlcare support."
+  },
+  "com.sonymobile.support": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Sony Support."
+  }
+ },
+ "schema": 2,
+ "updated": "2026-11-21",
+ "lockedPrefixes": [],
+ "ecosystems": [],
+ "featureTags": [],
+ "prefixEntries": []
+}

@@ -135,7 +135,7 @@ fun ReviewScreen(vm: AppViewModel, nav: Nav) {
         }
         return
     }
-    val high = p.changes.count { it.risk == Risk.HIGH }
+    val high = p.changes.count { it.needsConfirmation }
     val warned = p.changes.count { it.warnings.isNotEmpty() }
     val canApply = access.privileged && (high == 0 || confirmedHigh)
 
@@ -191,7 +191,7 @@ fun ReviewScreen(vm: AppViewModel, nav: Nav) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(confirmedHigh, { confirmedHigh = it }, modifier = Modifier.testTag("confirm_high"))
                     Spacer(Modifier.width(8.dp))
-                    Text("I understand that $high high-risk change${if (high == 1) "" else "s"} can break features of this phone, and that I can undo them in Restore.",
+                    Text("I understand that $high high-risk or unknown change${if (high == 1) "" else "s"} can break features of this phone, and that I can undo them in Restore.",
                         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }

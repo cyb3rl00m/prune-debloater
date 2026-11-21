@@ -1,0 +1,223 @@
+{
+ "manufacturer": "OPPO / OnePlus / realme",
+ "brands": [
+  "OPPO",
+  "OnePlus",
+  "realme"
+ ],
+ "comment": "OPPO (ColorOS), OnePlus (OxygenOS) and realme (realme UI) share one code base (com.oplus, com.coloros, com.heytap), so they share this file.",
+ "locked": [
+  {
+   "id": "com.oplus.notificationmanager",
+   "reason": "Notification management."
+  },
+  {
+   "id": "com.oplus.exsystemservice",
+   "reason": "System services (screenshots and more)."
+  }
+ ],
+ "ecosystems": [
+  {
+   "key": "OPLUS_ACCOUNT",
+   "name": "OPPO / OnePlus account & Cloud",
+   "warning": "Account sign-in, HeyTap/OnePlus Cloud backup and the theme store can stop working.",
+   "packages": [
+    "com.heytap.usercenter",
+    "com.oneplus.account",
+    "com.heytap.cloud",
+    "com.coloros.cloud"
+   ]
+  },
+  {
+   "key": "OPLUS_SHARE",
+   "name": "OPPO / OnePlus Share",
+   "warning": "Wireless file sharing with OPPO, OnePlus, realme, Xiaomi and vivo phones stops working.",
+   "packages": [
+    "com.coloros.oshare",
+    "com.oplus.oshare"
+   ]
+  },
+  {
+   "key": "OPLUS_GAMES",
+   "name": "Games & Game Space",
+   "warning": "Game Space / Games overlay (do-not-disturb and performance modes while gaming) stops working.",
+   "packages": [
+    "com.oplus.games",
+    "com.coloros.gamespaceui",
+    "com.oneplus.gamespace"
+   ]
+  }
+ ],
+ "featureTags": [
+  {
+   "key": "UPDATES",
+   "name": "System updates",
+   "warning": "The phone may stop receiving security and system updates. Re-enable before checking for updates.",
+   "packages": [
+    "com.oplus.romupdate",
+    "com.oplus.ota",
+    "com.oplus.sau",
+    "com.coloros.sau"
+   ]
+  },
+  {
+   "key": "DEVICE_CARE",
+   "name": "Battery & device care",
+   "warning": "Battery management, thermal handling or app sleeping can stop working, which often makes battery life worse.",
+   "packages": [
+    "com.oplus.battery"
+   ]
+  }
+ ],
+ "entries": {
+  "com.nearme.statistics.rom": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "User Experience Program: usage statistics."
+  },
+  "com.oplus.statistics.rom": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "User Experience Program: usage statistics."
+  },
+  "com.heytap.mcs": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Promotional system messages."
+  },
+  "com.oplus.metis": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Records app usage behavior."
+  },
+  "com.heytap.market": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "App Market. Some apps update through it."
+  },
+  "com.heytap.browser": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Browser. Make sure another browser is installed."
+  },
+  "com.heytap.music": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Music."
+  },
+  "com.coloros.video": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Video player."
+  },
+  "com.oneplus.brickmode": {
+   "level": 2,
+   "risk": "SAFE",
+   "note": "Zen Mode."
+  },
+  "com.coloros.childrenspace": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Kid space."
+  },
+  "com.heytap.speechassist": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Breeno assistant."
+  },
+  "com.realme.link": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "realme Link (IoT devices)."
+  },
+  "com.oplus.games": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Games."
+  },
+  "com.coloros.gamespaceui": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Game Space overlay."
+  },
+  "com.oneplus.gamespace": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Game Space."
+  },
+  "com.coloros.findmyphone": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Find phone anti-theft."
+  },
+  "com.heytap.cloud": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Cloud backup."
+  },
+  "com.coloros.oshare": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Share (file transfer)."
+  },
+  "com.heytap.themestore": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Theme store."
+  },
+  "com.oplus.themestore": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Theme store."
+  },
+  "com.heytap.usercenter": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Account service used by cloud, theme store and app market."
+  },
+  "com.oneplus.account": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "OnePlus account."
+  },
+  "com.oplus.cosa": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "App enhancement / performance service."
+  },
+  "com.oplus.battery": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Battery management."
+  },
+  "com.oplus.romupdate": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Update service."
+  },
+  "com.oplus.ota": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Software update."
+  },
+  "com.oplus.sau": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "System upgrade service."
+  },
+  "com.coloros.sau": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "System upgrade service."
+  },
+  "com.coloros.weather2": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Weather. Removing it is reported to bootloop some devices."
+  }
+ },
+ "schema": 2,
+ "updated": "2026-11-21",
+ "lockedPrefixes": [],
+ "prefixEntries": []
+}

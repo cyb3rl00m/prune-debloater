@@ -39,6 +39,13 @@ data class CuratedEntry(
     val risk: String,
     val note: String? = null,
     val google: Boolean = false,
+    /** Only applies on these Android versions (API levels), when set. */
+    val minSdk: Int? = null,
+    val maxSdk: Int? = null,
+    /** Only applies on these firmwares (for example "HyperOS"), when set. */
+    val firmware: List<String> = emptyList(),
+    val consequences: String? = null,
+    val recovery: String? = null,
 )
 
 @Serializable
@@ -49,36 +56,67 @@ data class PrefixEntry(
     val note: String? = null,
 )
 
+/** One rule file: core.json or a manufacturer file. */
 @Serializable
 data class PruneRules(
     val schema: Int,
+    val manufacturer: String = "Generic Android",
+    val brands: List<String> = emptyList(),
     val updated: String,
     val comment: String = "",
-    val locked: List<LockedEntry>,
-    val lockedPrefixes: List<LockedPrefix>,
-    val ecosystems: List<Group>,
-    val featureTags: List<Group>,
-    val entries: Map<String, CuratedEntry>,
-    val prefixEntries: List<PrefixEntry>,
+    val locked: List<LockedEntry> = emptyList(),
+    val lockedPrefixes: List<LockedPrefix> = emptyList(),
+    val ecosystems: List<Group> = emptyList(),
+    val featureTags: List<Group> = emptyList(),
+    val entries: Map<String, CuratedEntry> = emptyMap(),
+    val prefixEntries: List<PrefixEntry> = emptyList(),
 )
 
-/** Prune's package knowledge: its own safety rules plus the community descriptions. */
-class PackageDatabase(val rules: PruneRules, val uad: Map<String, UadEntry>) {
+/** A curated entry together with the rule file it came from. */
+data class SourcedEntry(val entry: CuratedEntry, val manufacturer: String)
 
-    private val lockedById = rules.locked.associateBy { it.id }
-    val ecosystemsByKey: Map<String, Group> = rules.ecosystems.associateBy { it.key }
-    val featureTagsByKey: Map<String, Group> = rules.featureTags.associateBy { it.key }
+/** What the classifier needs to know about the device to apply firmware- or version-specific entries. */
+data class DeviceContext(val sdkInt: Int = Int.MAX_VALUE, val firmware: String? = null)
+
+/**
+ * Prune's package knowledge: the core rules, every manufacturer's rules, and the community descriptions.
+ * All manufacturer files are always loaded: a package name means the same on every device, and rebranded
+ * firmware (Redmi, POCO, OnePlus, realme...) still finds its rules.
+ */
+class PackageDatabase(val files: List<PruneRules>, val uad: Map<String, UadEntry>) {
+
+    private val lockedById: Map<String, String> = files.flatMap { it.locked }.associate { it.id to it.reason }
+    private val lockedPrefixes: List<LockedPrefix> = files.flatMap { it.lockedPrefixes }
+    private val entries: Map<String, SourcedEntry> =
+        files.flatMap { f -> f.entries.map { (k, v) -> k to SourcedEntry(v, f.manufacturer) } }.toMap()
+    private val prefixEntries: List<PrefixEntry> = files.flatMap { it.prefixEntries }
+
+    /** Ecosystems ("features you use"), merged by key across files. */
+    val ecosystems: List<Group> = merge(files.flatMap { it.ecosystems })
+    val featureTags: List<Group> = merge(files.flatMap { it.featureTags })
+    val ecosystemsByKey: Map<String, Group> = ecosystems.associateBy { it.key }
+    val updated: String = files.maxOfOrNull { it.updated } ?: ""
+    val curatedCount: Int = entries.size
 
     fun lockedReason(pkg: String): String? =
-        lockedById[pkg]?.reason ?: rules.lockedPrefixes.firstOrNull { pkg.startsWith(it.prefix) }?.reason
+        lockedById[pkg] ?: lockedPrefixes.firstOrNull { pkg.startsWith(it.prefix) }?.reason
 
-    fun curated(pkg: String): CuratedEntry? = rules.entries[pkg]
+    /** The curated entry for a package, if it applies to this Android version and firmware. */
+    fun curated(pkg: String, device: DeviceContext = DeviceContext()): SourcedEntry? {
+        val s = entries[pkg] ?: return null
+        val e = s.entry
+        if (e.minSdk != null && device.sdkInt < e.minSdk) return null
+        if (e.maxSdk != null && device.sdkInt > e.maxSdk) return null
+        if (e.firmware.isNotEmpty() && device.firmware != null &&
+            e.firmware.none { device.firmware.startsWith(it, ignoreCase = true) }) return null
+        return s
+    }
 
-    fun prefixEntry(pkg: String): PrefixEntry? = rules.prefixEntries.firstOrNull { pkg.startsWith(it.prefix) }
+    fun prefixEntry(pkg: String): PrefixEntry? = prefixEntries.firstOrNull { pkg.startsWith(it.prefix) }
 
-    fun ecosystemsOf(pkg: String): List<Group> = rules.ecosystems.filter { g -> matches(g, pkg) }
+    fun ecosystemsOf(pkg: String): List<Group> = ecosystems.filter { g -> matches(g, pkg) }
 
-    fun featureTagsOf(pkg: String): List<Group> = rules.featureTags.filter { g -> matches(g, pkg) }
+    fun featureTagsOf(pkg: String): List<Group> = featureTags.filter { g -> matches(g, pkg) }
 
     private fun matches(g: Group, pkg: String): Boolean =
         pkg in g.packages || g.prefixes.any { pkg.startsWith(it) } ||
@@ -87,9 +125,20 @@ class PackageDatabase(val rules: PruneRules, val uad: Map<String, UadEntry>) {
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
 
-        fun parse(rulesJson: String, uadJson: String): PackageDatabase =
+        /** Groups with the same key in several files become one group (first name and warning win). */
+        private fun merge(groups: List<Group>): List<Group> = groups.groupBy { it.key }.map { (_, gs) ->
+            gs.first().copy(
+                packages = gs.flatMap { it.packages }.distinct(),
+                prefixes = gs.flatMap { it.prefixes }.distinct(),
+                patterns = gs.flatMap { it.patterns }.distinct(),
+            )
+        }
+
+        fun parseRules(text: String): PruneRules = json.decodeFromString(PruneRules.serializer(), text)
+
+        fun parse(rulesJson: List<String>, uadJson: String): PackageDatabase =
             PackageDatabase(
-                json.decodeFromString(PruneRules.serializer(), rulesJson),
+                rulesJson.mapNotNull { runCatching { parseRules(it) }.getOrNull() },
                 json.decodeFromString(MapSerializer(String.serializer(), UadEntry.serializer()), uadJson),
             )
     }

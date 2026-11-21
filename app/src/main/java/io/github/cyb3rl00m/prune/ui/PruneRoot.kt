@@ -69,6 +69,8 @@ object Routes {
     const val SETUP = "setup"
     const val SETTINGS = "settings"
     const val DEVICE = "device"
+    const val COMPAT = "compat"
+    const val DUPLICATES = "duplicates"
 
     fun customize(level: DebloatLevel) = "customize/${level.number}"
     fun app(pkg: String) = "app/$pkg"
@@ -163,6 +165,8 @@ fun PruneRoot(vm: AppViewModel) {
                 composable(Routes.SETUP) { SetupScreen(vm, nav) }
                 composable(Routes.SETTINGS) { SettingsScreen(vm, nav) }
                 composable(Routes.DEVICE) { DeviceScreen(vm, nav) }
+                composable(Routes.COMPAT) { io.github.cyb3rl00m.prune.ui.screens.CompatibilityScreen(vm, nav) }
+                composable(Routes.DUPLICATES) { io.github.cyb3rl00m.prune.ui.screens.DuplicatesScreen(vm, nav) }
             }
         }
     }

@@ -6,14 +6,16 @@ import kotlinx.serialization.Serializable
 enum class Risk(val label: String, val meaning: String) {
     SAFE("Safe", "Optional app. Nothing else depends on it."),
     LOW("Low risk", "Optional feature. You lose only that feature."),
-    MODERATE("Moderate", "Part of a Samsung or Google feature. Read the warning before removing."),
+    MODERATE("Moderate", "Part of a manufacturer or Google feature. Read the warning before removing."),
+    UNKNOWN("Unknown", "Prune does not know what this package does. Only for experienced users."),
     HIGH("High risk", "Core feature or used by other apps. Only for experienced users."),
     LOCKED("Protected", "System-critical. Prune never changes it.");
 }
 
 /** Where a package comes from. */
 enum class Source(val label: String) {
-    SAMSUNG("Samsung"),
+    /** Made by a phone manufacturer; [Classification.manufacturer] names which one. */
+    OEM("Manufacturer"),
     GOOGLE("Google"),
     CARRIER("Carrier"),
     PRELOAD("Third-party preload"),
@@ -64,6 +66,8 @@ data class PackageFacts(
     val versionName: String?,
     val uid: Int,
     val hasLauncherActivity: Boolean = false,
+    /** Package that installed this app (Play Store, a manufacturer store, a preload installer), if Android reports one. */
+    val installer: String? = null,
 ) {
     val status: PackageStatus
         get() = when {
@@ -92,13 +96,28 @@ data class Classification(
     val dependencies: List<String> = emptyList(),
     val neededBy: List<String> = emptyList(),
     val communityTier: String? = null,
-)
+    /** Manufacturer name for [Source.OEM] packages (for example "Xiaomi"). */
+    val manufacturer: String? = null,
+    /** What can stop working, if Prune's database says more than the warnings. */
+    val consequences: String? = null,
+    /** How to bring the package back. */
+    val recovery: String = "",
+    /** Region-specific variant (for example a .global or .india build of an app). */
+    val regional: Boolean = false,
+) {
+    /** Label for the package's origin: the manufacturer's name for manufacturer packages. */
+    val sourceLabel: String get() = if (source == Source.OEM) manufacturer ?: source.label else source.label
+    /** HIGH and UNKNOWN are never pre-selected and need an extra confirmation. */
+    val needsCare: Boolean get() = risk == Risk.HIGH || risk == Risk.UNKNOWN
+}
 
 data class AppPackage(
     val facts: PackageFacts,
     val classification: Classification,
     /** Last time the user opened it (from usage stats), or null if unknown. */
     val lastUsed: Long? = null,
+    /** Set when another installed app does the same job (two browsers, two galleries...). */
+    val duplicateGroup: String? = null,
 ) {
     val packageName get() = facts.packageName
     val label get() = facts.label

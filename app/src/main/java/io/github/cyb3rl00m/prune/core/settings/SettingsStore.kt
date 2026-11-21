@@ -21,6 +21,8 @@ data class AppSettings(
     val skipUsedWithinDays: Int = 14,
     /** null = not answered yet: every ecosystem counts as used. */
     val usedEcosystems: Set<String>? = null,
+    /** Ecosystem keys that existed when the user answered; newer keys count as used until answered. */
+    val knownEcosystems: Set<String>? = null,
     val preferRoot: Boolean = false,
     val setupDone: Boolean = false,
     val progressLevel: Int = 2,
@@ -37,6 +39,7 @@ class SettingsStore(private val context: Context) {
         val skipDays = intPreferencesKey("skip_used_days")
         val ecosystems = stringSetPreferencesKey("used_ecosystems")
         val ecosystemsAnswered = booleanPreferencesKey("ecosystems_answered")
+        val ecosystemsKnown = stringSetPreferencesKey("known_ecosystems")
         val preferRoot = booleanPreferencesKey("prefer_root")
         val setupDone = booleanPreferencesKey("setup_done")
         val progressLevel = intPreferencesKey("progress_level")
@@ -50,6 +53,7 @@ class SettingsStore(private val context: Context) {
             fallbackUninstall = p[K.fallback] ?: true,
             skipUsedWithinDays = p[K.skipDays] ?: 14,
             usedEcosystems = if (p[K.ecosystemsAnswered] == true) p[K.ecosystems].orEmpty() else null,
+            knownEcosystems = p[K.ecosystemsKnown] ?: if (p[K.ecosystemsAnswered] == true) V1_ECOSYSTEMS else null,
             preferRoot = p[K.preferRoot] ?: false,
             setupDone = p[K.setupDone] ?: false,
             progressLevel = p[K.progressLevel] ?: 2,
@@ -61,9 +65,24 @@ class SettingsStore(private val context: Context) {
     suspend fun setMethod(v: RemovalMethod) = context.dataStore.edit { it[K.method] = v.name }
     suspend fun setFallback(v: Boolean) = context.dataStore.edit { it[K.fallback] = v }
     suspend fun setSkipDays(v: Int) = context.dataStore.edit { it[K.skipDays] = v }
-    suspend fun setUsedEcosystems(v: Set<String>) = context.dataStore.edit {
+    suspend fun setUsedEcosystems(v: Set<String>, known: Set<String>) = context.dataStore.edit {
         it[K.ecosystems] = v
+        it[K.ecosystemsKnown] = known
         it[K.ecosystemsAnswered] = true
+    }
+
+    companion object {
+        /** Ecosystem keys of Prune 1.x (Samsung only). Answers saved by 1.x know nothing about other brands. */
+        val V1_ECOSYSTEMS = setOf("WALLET", "PASS", "WEARABLE", "SMARTTHINGS", "DEX", "LINK_WINDOWS", "QUICK_SHARE",
+            "BIXBY", "HEALTH", "ACCOUNT", "FIND_MY", "SECURE_FOLDER", "SPEN", "GAMING", "GALAXY_AI", "THEMES", "EDGE",
+            "ACCESSIBILITY", "CAR")
+
+        /** Keys the user said they use, plus every key they were never asked about. */
+        fun effectiveUsed(s: AppSettings, all: Set<String>): Set<String> {
+            val used = s.usedEcosystems ?: return all
+            val known = s.knownEcosystems ?: all
+            return (used + (all - known)).intersect(all)
+        }
     }
     suspend fun setPreferRoot(v: Boolean) = context.dataStore.edit { it[K.preferRoot] = v }
     suspend fun setSetupDone(v: Boolean) = context.dataStore.edit { it[K.setupDone] = v }

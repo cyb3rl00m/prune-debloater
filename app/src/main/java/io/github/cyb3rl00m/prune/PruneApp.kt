@@ -3,6 +3,15 @@ package io.github.cyb3rl00m.prune
 import android.app.Application
 import android.content.Context
 import io.github.cyb3rl00m.prune.core.db.Classifier
+import io.github.cyb3rl00m.prune.core.db.DeviceContext
+import io.github.cyb3rl00m.prune.core.oem.DeviceIdentity
+import io.github.cyb3rl00m.prune.core.oem.OemIntegration
+import io.github.cyb3rl00m.prune.core.oem.OemRegistry
+import io.github.cyb3rl00m.prune.core.scan.DuplicateFinder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import io.github.cyb3rl00m.prune.core.db.PackageDatabase
 import io.github.cyb3rl00m.prune.core.device.DeviceInfo
 import io.github.cyb3rl00m.prune.core.device.DeviceInfoReader
@@ -42,6 +51,7 @@ val Context.repository: PruneRepository get() = (applicationContext as PruneApp)
 data class ScanState(
     val apps: List<AppPackage> = emptyList(),
     val usage: Map<String, AppUsage> = emptyMap(),
+    val duplicates: List<DuplicateFinder.DuplicateGroup> = emptyList(),
     val scanning: Boolean = false,
     val lastScan: Long = 0,
     val error: String? = null,
@@ -51,14 +61,23 @@ data class ScanState(
 class PruneRepository(val context: Context) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    /** Device identity never changes while the app runs: read it once. */
+    val identity: DeviceIdentity by lazy { DeviceIdentity.read() }
+    val integration: OemIntegration by lazy { OemRegistry.detect(identity) }
+
     val database: PackageDatabase by lazy {
         val assets = context.assets
-        PackageDatabase.parse(
-            assets.open("prune_rules.json").bufferedReader().use { it.readText() },
-            assets.open("packages_uad.json").bufferedReader().use { it.readText() },
-        )
+        fun read(path: String) = assets.open(path).bufferedReader().use { it.readText() }
+        // index.json lists core.json first; a damaged manufacturer file is skipped, not fatal.
+        val files = runCatching {
+            Json.parseToJsonElement(read("rules/index.json")).jsonObject["files"]!!.jsonArray.map { it.jsonPrimitive.content }
+        }.getOrDefault(listOf("core.json"))
+        PackageDatabase.parse(files.mapNotNull { runCatching { read("rules/$it") }.getOrNull() }, read("packages_uad.json"))
     }
-    val classifier by lazy { Classifier(database) }
+    val classifier by lazy {
+        Classifier(database, DeviceContext(identity.sdkInt, OemRegistry.firmwareSafe(integration, identity)?.name))
+    }
+    val duplicateFinder = DuplicateFinder(context)
     val scanner = PackageScanner(context)
     val usageReader = UsageReader(context)
     val access = AccessManager(context)
@@ -82,15 +101,19 @@ class PruneRepository(val context: Context) {
         _scan.update { it.copy(scanning = true, error = null) }
         try {
             withContext(Dispatchers.IO) {
-                _device.value = DeviceInfoReader.read(context)
+                val info = DeviceInfoReader.read(context, identity)
+                _device.value = info
                 access.refresh()
                 val facts = scanner.scan()
-                val dynamic = scanner.dynamicProtections()
+                val oemLocks = runCatching { integration.dynamicProtections(info.services) }.getOrDefault(emptyMap())
+                val dynamic = scanner.dynamicProtections(oemLocks)
                 val usage = usageReader.read()
+                val duplicates = runCatching { duplicateFinder.find() }.getOrDefault(emptyList())
+                val dupOf = duplicates.flatMap { g -> g.packages.map { it to g.name } }.toMap()
                 val apps = facts.map { f ->
-                    AppPackage(f, classifier.classify(f, dynamic), usage[f.packageName]?.lastUsed)
+                    AppPackage(f, classifier.classify(f, dynamic), usage[f.packageName]?.lastUsed, dupOf[f.packageName])
                 }
-                _scan.value = ScanState(apps, usage, scanning = false, lastScan = System.currentTimeMillis())
+                _scan.value = ScanState(apps, usage, duplicates, scanning = false, lastScan = System.currentTimeMillis())
             }
         } catch (t: Throwable) {
             _scan.update { it.copy(scanning = false, error = t.message ?: t.toString()) }

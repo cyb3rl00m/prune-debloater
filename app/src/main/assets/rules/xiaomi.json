@@ -1,0 +1,301 @@
+{
+ "manufacturer": "Xiaomi",
+ "brands": [
+  "Xiaomi",
+  "Redmi",
+  "POCO"
+ ],
+ "comment": "Xiaomi, Redmi and POCO phones share the same firmware (MIUI, later HyperOS), so they share this file.",
+ "locked": [
+  {
+   "id": "com.miui.securitycenter",
+   "reason": "MIUI/HyperOS Security app: handles app permissions, autostart and the permission prompts. Disabling it breaks permissions and can bootloop."
+  },
+  {
+   "id": "com.android.updater",
+   "reason": "Xiaomi system updater. Removing it is reported to bootloop some devices."
+  },
+  {
+   "id": "com.miui.securityadd",
+   "reason": "Part of the Security app. Removing it is reported to bootloop."
+  },
+  {
+   "id": "com.xiaomi.misettings",
+   "reason": "Xiaomi settings components."
+  }
+ ],
+ "lockedPrefixes": [
+  {
+   "prefix": "com.miui.rom",
+   "reason": "Core MIUI package."
+  },
+  {
+   "prefix": "com.miui.system",
+   "reason": "Core MIUI/HyperOS system resources."
+  }
+ ],
+ "ecosystems": [
+  {
+   "key": "XIAOMI_CLOUD",
+   "name": "Xiaomi account & Cloud",
+   "warning": "Xiaomi Cloud backup and sync (photos, contacts, notes) and Xiaomi account sign-in stop working.",
+   "packages": [
+    "com.xiaomi.account",
+    "com.miui.cloudservice",
+    "com.miui.cloudbackup",
+    "com.miui.micloudsync",
+    "com.miui.cloudservice.sysbase"
+   ]
+  },
+  {
+   "key": "XIAOMI_SHARE",
+   "name": "Xiaomi Share & casting",
+   "warning": "Xiaomi Share (file sharing with Xiaomi, OPPO and vivo phones) and screen casting stop working.",
+   "packages": [
+    "com.miui.mishare.connectivity",
+    "com.milink.service",
+    "com.xiaomi.mi_connect_service",
+    "com.xiaomi.mirror"
+   ]
+  },
+  {
+   "key": "XIAOMI_PAY",
+   "name": "Mi Pay & Xiaomi wallet",
+   "warning": "Mi Pay, transit cards and Xiaomi wallet features stop working.",
+   "packages": [
+    "com.mipay.wallet",
+    "com.xiaomi.payment",
+    "com.mipay.wallet.in",
+    "com.xiaomi.mipay"
+   ]
+  }
+ ],
+ "featureTags": [
+  {
+   "key": "UPDATES",
+   "name": "System updates",
+   "warning": "The phone may stop receiving security and system updates. Re-enable before checking for updates.",
+   "packages": [
+    "com.xiaomi.discover"
+   ]
+  },
+  {
+   "key": "DEVICE_CARE",
+   "name": "Battery & device care",
+   "warning": "Battery management, thermal handling or app sleeping can stop working, which often makes battery life worse.",
+   "packages": [
+    "com.miui.powerkeeper",
+    "com.xiaomi.joyose"
+   ]
+  },
+  {
+   "key": "SECURITY",
+   "name": "Security",
+   "warning": "Removes a security protection. Only do this if you understand what it protects against.",
+   "packages": [
+    "com.miui.guardprovider",
+    "com.miui.securitycore"
+   ]
+  }
+ ],
+ "entries": {
+  "com.miui.msa.global": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "MIUI System Ads: shows ads in Xiaomi system apps."
+  },
+  "com.miui.analytics": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Xiaomi analytics / data collection."
+  },
+  "com.miui.daemon": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Collects device usage data in the background."
+  },
+  "com.miui.bugreport": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Mi Feedback / bug reports."
+  },
+  "com.miui.miservice": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Services & feedback."
+  },
+  "com.xiaomi.glgm": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Xiaomi Games."
+  },
+  "com.miui.hybrid": {
+   "level": 1,
+   "risk": "LOW",
+   "note": "Quick Apps (mini web apps, ads)."
+  },
+  "com.miui.android.fashiongallery": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Wallpaper Carousel / Glance lock screen wallpapers."
+  },
+  "com.mi.android.globalminusscreen": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "App Vault (left home-screen page)."
+  },
+  "com.miui.yellowpage": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Yellow Pages caller ID for businesses."
+  },
+  "com.xiaomi.mipicks": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "GetApps (Xiaomi app store). Some Xiaomi apps update through it."
+  },
+  "com.mi.globalbrowser": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Mi Browser. Make sure another browser is installed."
+  },
+  "com.miui.videoplayer": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Mi Video."
+  },
+  "com.miui.player": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Mi Music."
+  },
+  "com.miui.cleanmaster": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Cleaner (third-party engine)."
+  },
+  "com.xiaomi.scanner": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Scanner (QR codes, documents)."
+  },
+  "com.miui.fm": {
+   "level": 2,
+   "risk": "SAFE",
+   "note": "FM Radio."
+  },
+  "com.miui.compass": {
+   "level": 2,
+   "risk": "SAFE",
+   "note": "Compass."
+  },
+  "com.facemoji.lite.xiaomi": {
+   "level": 1,
+   "risk": "LOW",
+   "note": "Facemoji keyboard. Keep it if it is your keyboard."
+  },
+  "com.miui.notes": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Notes. Notes stored only on the phone are deleted with its data."
+  },
+  "com.miui.weather2": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Weather: also feeds weather widgets."
+  },
+  "com.miui.backup": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Local backup and restore."
+  },
+  "com.mipay.wallet": {
+   "level": 2,
+   "risk": "MODERATE",
+   "note": "Mi Pay."
+  },
+  "com.xiaomi.payment": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Mi Credit."
+  },
+  "com.xiaomi.account": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Xiaomi account: cloud, Find Device and theme store depend on it."
+  },
+  "com.miui.cloudservice": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Xiaomi Cloud sync."
+  },
+  "com.miui.cloudbackup": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Xiaomi Cloud backup."
+  },
+  "com.miui.micloudsync": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Xiaomi Cloud sync."
+  },
+  "com.miui.mishare.connectivity": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Xiaomi Share file transfer."
+  },
+  "com.milink.service": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Screen casting service."
+  },
+  "com.xiaomi.finddevice": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Find Device anti-theft."
+  },
+  "com.miui.powerkeeper": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Battery and performance management."
+  },
+  "com.xiaomi.joyose": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Game/performance tuning profiles."
+  },
+  "com.xiaomi.xmsf": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Xiaomi Service Framework: push messages and Xiaomi account services."
+  },
+  "com.miui.guardprovider": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Security scanning engine used by the Security app."
+  },
+  "com.miui.securitycore": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Second space, app lock and security core features."
+  },
+  "com.miui.gallery": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Gallery: the camera opens photos in it."
+  },
+  "com.android.thememanager": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Themes: also applies wallpapers and icons."
+  },
+  "com.xiaomi.discover": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "System apps updater."
+  }
+ },
+ "schema": 2,
+ "updated": "2026-11-21",
+ "prefixEntries": []
+}

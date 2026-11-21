@@ -62,7 +62,7 @@ import io.github.cyb3rl00m.prune.ui.components.SectionHeader
 fun DebloatScreen(vm: AppViewModel, nav: Nav) {
     val scan by vm.scan.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
-    val used = settings.usedEcosystems ?: vm.allEcosystemKeys
+    val used = io.github.cyb3rl00m.prune.core.settings.SettingsStore.effectiveUsed(settings, vm.allEcosystemKeys)
     val counts = remember(scan.apps, used) {
         DebloatLevel.entries.associateWith { l ->
             PlanBuilder.candidates(scan.apps, io.github.cyb3rl00m.prune.core.plan.ProfileOptions.defaults(l, used))
@@ -71,7 +71,7 @@ fun DebloatScreen(vm: AppViewModel, nav: Nav) {
     }
     ScreenScaffold("Debloat", null, "debloat", subtitle = "Pick a level. You review every change before anything happens.") {
         item {
-            Banner("Every level is a starting point: on the next screen you tell Prune which Samsung features you use, and untick anything you want to keep.",
+            Banner("Every level is a starting point: on the next screen you tell Prune which manufacturer and Google features you use, and untick anything you want to keep.",
                 BannerKind.INFO)
         }
         DebloatLevel.entries.forEach { level ->
@@ -148,7 +148,7 @@ fun CustomizeScreen(vm: AppViewModel, nav: Nav, level: DebloatLevel) {
             ) { Text("Review ${selected.size + bgCount} changes") }
         },
     ) {
-        item { SectionHeader("Samsung features you use") }
+        item { SectionHeader("Features you use") }
         item {
             PruneCard {
                 Text("Packages behind the features you keep ticked are never selected. Untick what you never use.",

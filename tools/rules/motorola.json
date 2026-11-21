@@ -1,0 +1,98 @@
+{
+ "manufacturer": "Motorola",
+ "comment": "Motorola phones (My UX, near-stock Android).",
+ "ecosystems": [
+  {
+   "key": "MOTO_FEATURES",
+   "name": "Moto Actions & Moto Display",
+   "warning": "Gestures (chop for flashlight, twist for camera) and Moto Display / Peek stop working.",
+   "packages": [
+    "com.motorola.actions",
+    "com.motorola.moto",
+    "com.motorola.motodisplay"
+   ]
+  }
+ ],
+ "featureTags": [
+  {
+   "key": "UPDATES",
+   "name": "System updates",
+   "warning": "The phone may stop receiving security and system updates. Re-enable before checking for updates.",
+   "packages": [
+    "com.motorola.ccc.ota"
+   ]
+  }
+ ],
+ "entries": {
+  "com.motorola.demo": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Retail demo mode."
+  },
+  "com.motorola.mototour": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Moto Tour (intro guide)."
+  },
+  "com.motorola.help": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Moto Feedback."
+  },
+  "com.motorola.genie": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Device Help."
+  },
+  "com.motorola.motocare": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Device Help (older name)."
+  },
+  "com.motorola.ccc.notification": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Motorola promotional notifications."
+  },
+  "com.motorola.brapps": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Motorola App Box (Latin America)."
+  },
+  "com.motorola.gamemode": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Moto Gametime."
+  },
+  "com.motorola.timeweatherwidget": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Time and weather widget."
+  },
+  "com.motorola.actions": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Moto Actions gestures."
+  },
+  "com.motorola.moto": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Moto app: settings for Actions, Display and gestures."
+  },
+  "com.motorola.motodisplay": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Moto Display / Peek notifications."
+  },
+  "com.motorola.ccc.ota": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Motorola update services."
+  }
+ },
+ "schema": 2,
+ "updated": "2026-11-21",
+ "locked": [],
+ "lockedPrefixes": [],
+ "prefixEntries": []
+}

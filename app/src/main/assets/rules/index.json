@@ -1,0 +1,13 @@
+{
+ "files": [
+  "core.json",
+  "google_pixel.json",
+  "honor.json",
+  "huawei.json",
+  "motorola.json",
+  "oplus.json",
+  "others.json",
+  "samsung.json",
+  "xiaomi.json"
+ ]
+}

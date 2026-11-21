@@ -61,7 +61,7 @@ import io.github.cyb3rl00m.prune.ui.components.SectionHeader
 import io.github.cyb3rl00m.prune.ui.components.StatusBadge
 import io.github.cyb3rl00m.prune.ui.components.daysAgo
 
-private enum class StatusFilter(val label: String) { ALL("All"), ENABLED("Enabled"), OFF("Disabled / removed") }
+private enum class StatusFilter(val label: String) { ALL("All"), ENABLED("Enabled"), OFF("Disabled / removed"), DUPLICATES("Duplicates") }
 
 @Composable
 fun AppsScreen(vm: AppViewModel, nav: Nav) {
@@ -79,6 +79,7 @@ fun AppsScreen(vm: AppViewModel, nav: Nav) {
                     StatusFilter.ALL -> true
                     StatusFilter.ENABLED -> a.status == PackageStatus.ENABLED
                     StatusFilter.OFF -> a.status != PackageStatus.ENABLED
+                    StatusFilter.DUPLICATES -> a.duplicateGroup != null
                 }
         }
     }
@@ -144,7 +145,7 @@ fun AppDetailScreen(vm: AppViewModel, nav: Nav, pkg: String) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             RiskBadge(app.risk)
                             StatusBadge(app.status)
-                            Pill(c.source.label, MaterialTheme.colorScheme.onSurfaceVariant)
+                            Pill(c.sourceLabel, MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -198,7 +199,10 @@ fun AppDetailScreen(vm: AppViewModel, nav: Nav, pkg: String) {
         item { SectionHeader("Details") }
         item {
             PruneCard {
-                KeyValue("Category", c.source.label)
+                KeyValue("Category", c.sourceLabel)
+                app.facts.installer?.let { KeyValue("Installed by", it) }
+                app.duplicateGroup?.let { KeyValue("Same job as", "Other ${it.lowercase()} on this phone") }
+                if (c.regional) KeyValue("Variant", "Region-specific")
                 KeyValue("Status", app.status.label)
                 KeyValue("Risk", "${app.risk.label} — ${app.risk.meaning}")
                 KeyValue("Recommended", c.recommendedAction.label)
@@ -210,6 +214,14 @@ fun AppDetailScreen(vm: AppViewModel, nav: Nav, pkg: String) {
                 if (c.dependencies.isNotEmpty()) KeyValue("Depends on", c.dependencies.joinToString("\n"))
                 if (c.neededBy.isNotEmpty()) KeyValue("Needed by", c.neededBy.joinToString("\n"))
             }
+        }
+        c.consequences?.let { text ->
+            item { SectionHeader("Possible consequences") }
+            item { PruneCard { Text(text, style = MaterialTheme.typography.bodyMedium) } }
+        }
+        if (app.facts.isSystem || c.source == Source.PRELOAD) {
+            item { SectionHeader("How to bring it back") }
+            item { PruneCard { Text(c.recovery, style = MaterialTheme.typography.bodySmall) } }
         }
         item { SectionHeader("Actions") }
         item {

@@ -1,32 +1,9 @@
 {
- "schema": 1,
- "updated": "2026-11-19",
- "comment": "Prune's own safety layer. It always wins over the UAD-ng community data. level = lowest debloat level that may select the package (1 Minimal, 2 Balanced, 3 Aggressive, 4 Custom only). risk = SAFE | LOW | MODERATE | HIGH. Locked packages can never be changed by Prune.",
+ "schema": 2,
+ "manufacturer": "Samsung",
+ "updated": "2026-11-21",
+ "comment": "Samsung Galaxy (One UI) packages.",
  "locked": [
-  {
-   "id": "android",
-   "reason": "The Android framework itself."
-  },
-  {
-   "id": "com.android.systemui",
-   "reason": "System UI: status bar, notifications, navigation, lock screen."
-  },
-  {
-   "id": "com.android.settings",
-   "reason": "Settings app. Needed to undo almost anything."
-  },
-  {
-   "id": "com.android.shell",
-   "reason": "ADB shell. Shizuku and Prune's restore functions run through it."
-  },
-  {
-   "id": "com.android.phone",
-   "reason": "Telephony: calls, mobile data and emergency calls."
-  },
-  {
-   "id": "com.android.server.telecom",
-   "reason": "Call routing: without it no call can be made, including emergency calls."
-  },
   {
    "id": "com.samsung.android.incallui",
    "reason": "Samsung's in-call screen. Needed to answer and make calls."
@@ -34,14 +11,6 @@
   {
    "id": "com.samsung.android.app.telephonyui",
    "reason": "Samsung telephony UI: SIM, network and call settings."
-  },
-  {
-   "id": "com.android.mms.service",
-   "reason": "Sends and receives SMS/MMS."
-  },
-  {
-   "id": "com.android.stk",
-   "reason": "SIM Toolkit: carrier services stored on the SIM card."
   },
   {
    "id": "com.sec.imsservice",
@@ -52,112 +21,8 @@
    "reason": "Wi-Fi calling gateway."
   },
   {
-   "id": "com.android.emergency",
-   "reason": "Emergency information and emergency calling."
-  },
-  {
    "id": "com.samsung.android.emergency",
    "reason": "Samsung emergency mode and Emergency SOS."
-  },
-  {
-   "id": "com.android.carrierconfig",
-   "reason": "Carrier configuration: VoLTE, APNs and network settings."
-  },
-  {
-   "id": "com.android.ims",
-   "reason": "IMS framework: VoLTE and emergency calls."
-  },
-  {
-   "id": "com.android.ons",
-   "reason": "Opportunistic network service: SIM network selection."
-  },
-  {
-   "id": "com.android.permissioncontroller",
-   "reason": "Permission dialogs and the permission manager."
-  },
-  {
-   "id": "com.google.android.permissioncontroller",
-   "reason": "Permission dialogs and the permission manager."
-  },
-  {
-   "id": "com.android.packageinstaller",
-   "reason": "Installs and uninstalls apps."
-  },
-  {
-   "id": "com.google.android.packageinstaller",
-   "reason": "Installs and uninstalls apps."
-  },
-  {
-   "id": "com.android.externalstorage",
-   "reason": "Access to internal storage and SD cards."
-  },
-  {
-   "id": "com.android.inputdevices",
-   "reason": "Keyboard layouts and input devices."
-  },
-  {
-   "id": "com.android.location.fused",
-   "reason": "Location provider used by all apps."
-  },
-  {
-   "id": "com.android.keychain",
-   "reason": "Certificate and key storage."
-  },
-  {
-   "id": "com.android.bluetooth",
-   "reason": "Bluetooth."
-  },
-  {
-   "id": "com.android.nfc",
-   "reason": "NFC: tap-to-pay and card reading."
-  },
-  {
-   "id": "com.android.se",
-   "reason": "Secure element: needed for NFC payments and digital keys."
-  },
-  {
-   "id": "com.android.wifi.resources",
-   "reason": "Wi-Fi configuration."
-  },
-  {
-   "id": "com.android.server.NetworkPermissionConfig",
-   "reason": "Network permissions."
-  },
-  {
-   "id": "com.android.localtransport",
-   "reason": "Backup transport used by the system."
-  },
-  {
-   "id": "com.android.ext.services",
-   "reason": "Core system services (notification ranking, autofill)."
-  },
-  {
-   "id": "com.google.android.ext.services",
-   "reason": "Core system services (notification ranking, autofill)."
-  },
-  {
-   "id": "com.android.ext.shared",
-   "reason": "Shared system library."
-  },
-  {
-   "id": "com.google.android.ext.shared",
-   "reason": "Shared system library."
-  },
-  {
-   "id": "com.google.android.gms",
-   "reason": "Google Play Services. Almost every app and Google sign-in depend on it."
-  },
-  {
-   "id": "com.google.android.gsf",
-   "reason": "Google Services Framework: push notifications and account sync."
-  },
-  {
-   "id": "com.google.android.webview",
-   "reason": "Android System WebView: many apps show web content through it."
-  },
-  {
-   "id": "com.android.webview",
-   "reason": "Android System WebView."
   },
   {
    "id": "com.sec.android.app.launcher",
@@ -210,49 +75,9 @@
   {
    "id": "com.samsung.android.timezone.updater",
    "reason": "Time zone rules."
-  },
-  {
-   "id": "moe.shizuku.privileged.api",
-   "reason": "Shizuku: Prune needs it to undo changes."
-  },
-  {
-   "id": "com.topjohnwu.magisk",
-   "reason": "Magisk root manager."
-  },
-  {
-   "id": "io.github.cyb3rl00m.prune",
-   "reason": "Prune itself."
-  },
-  {
-   "id": "io.github.cyb3rl00m.prune.debug",
-   "reason": "Prune itself."
   }
  ],
  "lockedPrefixes": [
-  {
-   "prefix": "com.android.providers.",
-   "reason": "Content providers: contacts, SMS, media, settings, downloads."
-  },
-  {
-   "prefix": "com.google.android.providers.",
-   "reason": "Content providers: media and storage."
-  },
-  {
-   "prefix": "com.android.networkstack",
-   "reason": "Network stack: Wi-Fi and mobile data connectivity."
-  },
-  {
-   "prefix": "com.google.android.networkstack",
-   "reason": "Network stack: Wi-Fi and mobile data connectivity."
-  },
-  {
-   "prefix": "com.android.cellbroadcast",
-   "reason": "Emergency and government alerts."
-  },
-  {
-   "prefix": "com.google.android.cellbroadcast",
-   "reason": "Emergency and government alerts."
-  },
   {
    "prefix": "com.samsung.android.biometrics",
    "reason": "Fingerprint and face unlock."
@@ -266,20 +91,8 @@
    "reason": "IMS: VoLTE, VoWiFi and emergency calls."
   },
   {
-   "prefix": "com.android.internal.",
-   "reason": "Framework overlays."
-  },
-  {
-   "prefix": "com.android.systemui.",
-   "reason": "System UI component."
-  },
-  {
    "prefix": "com.samsung.android.wifi.",
    "reason": "Samsung Wi-Fi framework."
-  },
-  {
-   "prefix": "com.android.wifi.",
-   "reason": "Wi-Fi framework."
   }
  ],
  "ecosystems": [
@@ -424,15 +237,6 @@
    ]
   },
   {
-   "key": "FIND_MY",
-   "name": "Find My Mobile",
-   "warning": "You can no longer locate, ring, lock or erase this phone remotely if it is lost or stolen.",
-   "packages": [
-    "com.samsung.android.fmm",
-    "com.samsung.android.app.find"
-   ]
-  },
-  {
    "key": "SECURE_FOLDER",
    "name": "Secure Folder & work profile",
    "warning": "Secure Folder and Knox work profiles stop opening. Remove Secure Folder content first.",
@@ -505,60 +309,9 @@
     "com.samsung.android.app.clipboardedge",
     "com.samsung.android.service.peoplestripe"
    ]
-  },
-  {
-   "key": "ACCESSIBILITY",
-   "name": "Accessibility tools",
-   "warning": "Accessibility features (screen reader, magnifier, switch control, sound detection) stop working. Keep these if you or someone using this phone needs them.",
-   "packages": [
-    "com.samsung.android.app.talkback",
-    "com.samsung.android.accessibility.talkback",
-    "com.google.android.marvin.talkback",
-    "com.samsung.accessibility",
-    "com.samsung.android.universalswitch",
-    "com.samsung.android.app.readingglass",
-    "com.samsung.android.app.advsounddetector",
-    "com.samsung.android.app.assistantmenu",
-    "com.samsung.android.app.accesscontrol"
-   ]
-  },
-  {
-   "key": "CAR",
-   "name": "Android Auto & car features",
-   "warning": "Android Auto and car connection features stop working.",
-   "packages": [
-    "com.google.android.projection.gearhead",
-    "com.samsung.android.drivelink.stub",
-    "com.samsung.android.app.mirrorlink"
-   ]
   }
  ],
  "featureTags": [
-  {
-   "key": "CAMERA",
-   "name": "Camera",
-   "warning": "May affect the camera app or camera features (modes, stickers, AR, scanning).",
-   "patterns": [
-    "camera",
-    "aremoji",
-    "arzone",
-    "livestickers",
-    "ardrawing",
-    "stickercenter",
-    "stickerplugin"
-   ]
-  },
-  {
-   "key": "NOTIFICATIONS",
-   "name": "Notifications & lock screen",
-   "warning": "May affect notifications, Always On Display or the lock screen.",
-   "patterns": [
-    "aodservice",
-    "notification",
-    "keyguard",
-    "lockscreen"
-   ]
-  },
   {
    "key": "UPDATES",
    "name": "System updates",
@@ -1260,11 +1013,6 @@
    "risk": "HIGH",
    "note": "Samsung accessibility framework."
   },
-  "com.google.android.projection.gearhead": {
-   "level": 3,
-   "risk": "MODERATE",
-   "note": "Android Auto."
-  },
   "com.samsung.android.rampart": {
    "level": 4,
    "risk": "HIGH",
@@ -1414,275 +1162,10 @@
    "level": 4,
    "risk": "HIGH"
   },
-  "com.google.android.youtube": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.android.apps.youtube.music": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.android.videos": {
-   "level": 2,
-   "risk": "SAFE",
-   "google": true,
-   "note": "Google TV."
-  },
-  "com.google.android.apps.tachyon": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true,
-   "note": "Google Meet."
-  },
-  "com.google.android.apps.magazines": {
-   "level": 2,
-   "risk": "SAFE",
-   "google": true
-  },
-  "com.google.android.apps.podcasts": {
-   "level": 2,
-   "risk": "SAFE",
-   "google": true
-  },
-  "com.google.android.apps.books": {
-   "level": 2,
-   "risk": "SAFE",
-   "google": true
-  },
-  "com.google.android.music": {
-   "level": 2,
-   "risk": "SAFE",
-   "google": true
-  },
-  "com.google.android.apps.subscriptions.red": {
-   "level": 2,
-   "risk": "SAFE",
-   "google": true,
-   "note": "Google One."
-  },
-  "com.google.android.apps.docs": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true,
-   "note": "Google Drive."
-  },
-  "com.google.android.apps.photos": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true,
-   "note": "Google Photos. Check that your photos are backed up the way you want."
-  },
-  "com.google.android.apps.maps": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.android.apps.bard": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true,
-   "note": "Gemini."
-  },
-  "com.google.android.apps.wellbeing": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.android.feedback": {
-   "level": 3,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.ar.core": {
-   "level": 3,
-   "risk": "LOW",
-   "google": true,
-   "note": "ARCore: needed by AR apps and some camera features."
-  },
-  "com.google.android.apps.restore": {
-   "level": 3,
-   "risk": "LOW",
-   "google": true,
-   "note": "Restore from another phone during setup."
-  },
-  "com.google.android.apps.turbo": {
-   "level": 3,
-   "risk": "MODERATE",
-   "google": true,
-   "note": "Device Health Services: battery time predictions."
-  },
-  "com.google.android.partnersetup": {
-   "level": 3,
-   "risk": "MODERATE",
-   "google": true
-  },
-  "com.google.android.googlequicksearchbox": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Google app: Assistant, Lens, search widget, Circle to Search."
-  },
-  "com.google.android.as": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Android System Intelligence: Live Caption, smart text selection, Circle to Search."
-  },
-  "com.google.android.as.oss": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true
-  },
-  "com.google.android.tts": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Text-to-speech engine."
-  },
-  "com.android.vending": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Google Play Store: app updates and purchases."
-  },
-  "com.google.android.inputmethod.latin": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Gboard. Make sure another keyboard is active first."
-  },
-  "com.google.android.trichromelibrary": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Shared library used by Chrome and WebView."
-  },
-  "com.android.chrome": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true,
-   "note": "Chrome. Some phones use it as the WebView provider."
-  },
-  "com.google.android.gm": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true,
-   "note": "Gmail."
-  },
-  "com.google.android.calendar": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.android.keep": {
-   "level": 2,
-   "risk": "LOW",
-   "google": true
-  },
-  "com.google.android.apps.messaging": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true,
-   "note": "Google Messages."
-  },
-  "com.google.android.dialer": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true
-  },
-  "com.google.android.contacts": {
-   "level": 4,
-   "risk": "HIGH",
-   "google": true
-  },
-  "com.facebook.katana": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.facebook.appmanager": {
-   "level": 1,
-   "risk": "SAFE",
-   "note": "Updates preinstalled Facebook apps in the background."
-  },
-  "com.facebook.services": {
-   "level": 1,
-   "risk": "SAFE",
-   "note": "Background Facebook services."
-  },
-  "com.facebook.system": {
-   "level": 1,
-   "risk": "SAFE",
-   "note": "Facebook app installer."
-  },
-  "com.facebook.orca": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.instagram.android": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.netflix.mediaclient": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.netflix.partner.activation": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.spotify.music": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.linkedin.android": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.microsoft.skydrive": {
-   "level": 1,
-   "risk": "SAFE",
-   "note": "OneDrive."
-  },
-  "com.microsoft.office.officehubrow": {
-   "level": 1,
-   "risk": "SAFE",
-   "note": "Microsoft 365."
-  },
-  "com.microsoft.office.outlook": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.touchtype.swiftkey": {
-   "level": 1,
-   "risk": "LOW",
-   "note": "SwiftKey keyboard. Keep it if it is your keyboard."
-  },
   "com.hiya.star": {
    "level": 2,
    "risk": "LOW",
    "note": "Hiya caller ID used by Smart Call."
-  },
-  "com.amazon.mShop.android.shopping": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.amazon.appmanager": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.booking": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.tiktok.android": {
-   "level": 1,
-   "risk": "SAFE"
-  },
-  "com.zhiliaoapp.musically": {
-   "level": 1,
-   "risk": "SAFE"
   }
  },
  "prefixEntries": [

@@ -25,7 +25,7 @@ data class PlannedChange(
     val fallbackUninstall: Boolean = false,
     val isSystemPackage: Boolean = true,
 ) {
-    val needsConfirmation: Boolean get() = risk == Risk.HIGH
+    val needsConfirmation: Boolean get() = risk == Risk.HIGH || risk == Risk.UNKNOWN
 }
 
 @Serializable
@@ -40,26 +40,26 @@ data class Plan(
 enum class DebloatLevel(val number: Int, val title: String, val summary: String, val details: List<String>) {
     MINIMAL(1, "Minimal", "A cleaner phone without real changes.", listOf(
         "Removes promoted apps, carrier apps and third-party preloads (Facebook, Netflix, ...)",
-        "Turns off optional Samsung extras: Tips, Samsung Free, AR Zone, stickers",
-        "Keeps every Samsung ecosystem feature and all Google services",
+        "Turns off optional manufacturer extras: tips, promotion feeds, ad services, AR stickers",
+        "Keeps every manufacturer ecosystem feature and all Google services",
     )),
     BALANCED(2, "Balanced", "Noticeably lighter, ecosystem kept.", listOf(
         "Everything in Minimal",
         "Removes diagnostics and data-collection services that run in the background",
-        "Removes optional Samsung apps you don't use (Gaming Hub, Email, Smart Switch...)",
+        "Removes optional manufacturer apps (game launchers, email, data-transfer helpers...)",
         "Optional: removes Google apps you don't need",
         "Optional: restricts background activity of apps you haven't used for 30 days",
     )),
     AGGRESSIVE(3, "Aggressive", "As light as reasonably possible.", listOf(
         "Everything in Balanced, Google apps included by default",
-        "Removes more Samsung components and optional system parts",
+        "Removes more manufacturer components and optional system parts",
         "Removes the parts of ecosystem features you say you don't use",
         "Expect to lose features: read every warning in the review",
     )),
     CUSTOM(4, "Extreme / Custom", "Every package, your choice.", listOf(
         "Lists every changeable package with its risk",
         "Starts from the Aggressive selection: you add or remove items one by one",
-        "High-risk packages need an extra confirmation",
+        "High-risk and unknown packages need an extra confirmation",
         "Protected packages stay locked, even here",
     ));
 
@@ -132,6 +132,7 @@ object PlanBuilder {
                 recentlyUsed -> "You opened it in the last ${options.skipUsedWithinDays} days"
                 inUse -> c.warnings.first { it.groupKey == "IN_USE" }.text
                 c.risk == Risk.HIGH -> "High risk: select only if you are sure"
+                c.risk == Risk.UNKNOWN -> "Unknown purpose: select only if you know what it does"
                 level > defaultLevel -> "Not in the default selection"
                 else -> null
             }

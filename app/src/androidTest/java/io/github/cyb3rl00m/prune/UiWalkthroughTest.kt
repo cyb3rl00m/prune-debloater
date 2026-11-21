@@ -56,6 +56,8 @@ class UiWalkthroughTest {
         waitScan()
         waitTag("screen_home")
         Shots.take("01-home")
+        click("device_card"); waitTag("screen_compat"); Shots.take("01b-compatibility")
+        click("back")
         click("tab_debloat"); waitTag("screen_debloat"); Shots.take("02-debloat")
         scrollTo("list_debloat", "level_2"); click("level_2"); waitTag("screen_customize"); Shots.take("03-customize-balanced")
         // A stock emulator has few Samsung/Google packages: the Balanced list can be empty there.

@@ -1,0 +1,67 @@
+{
+ "manufacturer": "Google Pixel",
+ "comment": "Pixel-only packages. Google apps found on all brands are in core.json.",
+ "ecosystems": [
+  {
+   "key": "PIXEL_SAFETY",
+   "name": "Personal Safety",
+   "warning": "Car crash detection, emergency sharing and safety check stop working.",
+   "packages": [
+    "com.google.android.apps.safetyhub"
+   ]
+  }
+ ],
+ "entries": {
+  "com.google.android.apps.tips": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Pixel Tips."
+  },
+  "com.google.android.apps.pixel.support": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Pixel troubleshooting."
+  },
+  "com.google.android.apps.pixelmigrate": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Data transfer from an old phone. Keep while you still move data."
+  },
+  "com.google.android.apps.recorder": {
+   "level": 2,
+   "risk": "LOW",
+   "note": "Recorder. Recordings are deleted with its data."
+  },
+  "com.google.android.apps.carrier.log": {
+   "level": 1,
+   "risk": "SAFE",
+   "note": "Carrier app logging."
+  },
+  "com.google.android.apps.diagnosticstool": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Diagnostics tool."
+  },
+  "com.google.android.apps.safetyhub": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Personal Safety: car crash detection and emergency features."
+  },
+  "com.google.android.apps.scone": {
+   "level": 4,
+   "risk": "HIGH",
+   "note": "Adaptive connectivity: switches between 5G and LTE."
+  },
+  "com.google.android.apps.wallpaper": {
+   "level": 3,
+   "risk": "MODERATE",
+   "note": "Wallpaper and style picker."
+  }
+ },
+ "schema": 2,
+ "updated": "2026-11-21",
+ "locked": [],
+ "lockedPrefixes": [],
+ "featureTags": [],
+ "prefixEntries": []
+}

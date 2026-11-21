@@ -54,6 +54,22 @@ class EngineOnDeviceTest {
         assertNotNull(repo.device.value)
     }
 
+    @Test fun deviceIdentityAndCompatibilityOnEmulator() {
+        runBlocking { repo.rescan() }
+        val d = repo.device.value!!
+        // The CI emulator must be recognised as such, never as a Pixel or another brand.
+        assertEquals(io.github.cyb3rl00m.prune.core.oem.EmulatorIntegration, d.integration)
+        assertTrue("getprop returned properties", d.identity.props.size > 50)
+        assertTrue(d.services.gms)
+        assertEquals("all rule files load", 9, repo.database.files.size)
+        val report = io.github.cyb3rl00m.prune.core.oem.CompatibilityReport.build(d.fullName, d.identity, d.integration,
+            d.firmware, d.services, io.github.cyb3rl00m.prune.core.oem.AccessSnapshot("test", true, false, false, false, false, true, true),
+            repo.history.state.value)
+        assertTrue(report.operations.all { it.status == io.github.cyb3rl00m.prune.core.oem.OpStatus.AVAILABLE })
+        // Duplicate detection runs on a real PackageManager without failing.
+        repo.duplicateFinder.find()
+    }
+
     @Test fun disableEnableRoundTrip() {
         val pkg = target()
         val app = repo.app(pkg)!!
