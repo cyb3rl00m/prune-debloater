@@ -70,6 +70,7 @@ fun AppsScreen(vm: AppViewModel, nav: Nav) {
     var source by rememberSaveable { mutableStateOf<Source?>(null) }
     var status by rememberSaveable { mutableStateOf(StatusFilter.ALL) }
     var risk by rememberSaveable { mutableStateOf<Risk?>(null) }
+    val focus = androidx.compose.ui.platform.LocalFocusManager.current
     val filtered = remember(scan.apps, query, source, status, risk) {
         scan.apps.filter { a ->
             (query.isBlank() || a.label.contains(query, true) || a.packageName.contains(query, true)) &&
@@ -112,7 +113,10 @@ fun AppsScreen(vm: AppViewModel, nav: Nav) {
         if (scan.scanning && scan.apps.isEmpty()) item { EmptyState("Scanning", "Reading installed packages…", Icons.Outlined.Search) }
         else if (filtered.isEmpty()) item { EmptyState("No packages", "Nothing matches these filters.", Icons.Outlined.SearchOff) }
         items(filtered, key = { it.packageName }) { a ->
-            PackageRow(a, modifier = Modifier.testTag("pkg_${a.packageName}"), onClick = { nav.go(Routes.app(a.packageName)) })
+            PackageRow(a, modifier = Modifier.testTag("pkg_${a.packageName}"), onClick = {
+                focus.clearFocus()
+                nav.go(Routes.app(a.packageName))
+            })
         }
     }
 }

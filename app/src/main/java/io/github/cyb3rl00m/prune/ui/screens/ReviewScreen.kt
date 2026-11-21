@@ -169,7 +169,7 @@ fun ReviewScreen(vm: AppViewModel, nav: Nav) {
     ) {
         item {
             PruneCard {
-                Text("${p.changes.size} changes", style = MaterialTheme.typography.headlineMedium)
+                Text("${p.changes.size} change${if (p.changes.size == 1) "" else "s"}", style = MaterialTheme.typography.headlineMedium)
                 Text("Nothing has been changed yet. Read the list, remove anything you want to keep, then apply.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(10.dp))
