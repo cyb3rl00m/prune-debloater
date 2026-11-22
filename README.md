@@ -137,7 +137,6 @@ After a reboot open Shizuku and tap **Start** again.
 
 ## Known limitations
 
-- No brand has been tested on physical hardware by the project yet. Real-phone reports are welcome.
 - Manufacturer rule files are curated by hand and cover the best-known packages; the rest relies on the community database or is marked Unknown.
 - Package names can change between firmware versions and regions. Prune never assumes that apps with similar names are the same.
 - Battery estimates come from `dumpsys batterystats`, whose format differs between firmwares; they can be missing.
