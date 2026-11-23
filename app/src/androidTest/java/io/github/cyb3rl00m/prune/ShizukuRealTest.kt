@@ -47,7 +47,7 @@ class ShizukuRealTest {
 
         if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
             Handler(Looper.getMainLooper()).post { Shizuku.requestPermission(REQUEST) }
-            val allow = device.wait(Until.findObject(By.text(Pattern.compile("(?i)allow.*"))), 20_000)
+            val allow = device.wait(Until.findObject(By.text(Pattern.compile("(?i)^allow all the time$"))), 20_000)
             if (allow == null) fail("Shizuku permission dialog did not appear") else allow.click()
             val until = System.currentTimeMillis() + 10_000
             while (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED && System.currentTimeMillis() < until) Thread.sleep(200)

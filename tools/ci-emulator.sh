@@ -111,7 +111,7 @@ else
   adb shell am start -W -n io.github.cyb3rl00m.prune/.MainActivity >/dev/null
   sleep 6
   RELEASE_OK=0
-  if tap_text '^Set up$' && tap_text '^Authorize Prune in Shizuku$' 3 && tap_text '(?i)^allow' 5; then
+  if tap_text '^Set up$' && tap_text '^Authorize Prune in Shizuku$' 3 && tap_text '(?i)^allow all the time$' 5; then
     sleep 3
     adb shell screencap -p /data/local/tmp/release-setup.png
     adb pull /data/local/tmp/release-setup.png "$OUT/screens/release-shizuku-setup.png" >/dev/null || true
