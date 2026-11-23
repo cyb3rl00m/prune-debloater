@@ -101,6 +101,20 @@ fun SetupScreen(vm: AppViewModel, nav: Nav) {
                     }
                     else -> OutlinedButton(onClick = { vm.refreshAccess() }, modifier = Modifier.fillMaxWidth()) { Text("Shizuku is ready · Refresh") }
                 }
+                if (access.privileged) {
+                    val connection by vm.connection.collectAsStateWithLifecycle()
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = { vm.testConnection() }, modifier = Modifier.fillMaxWidth().testTag("test_connection")) {
+                        Text("Test connection")
+                    }
+                    connection?.let {
+                        Spacer(Modifier.height(4.dp))
+                        SelectionContainer {
+                            Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("connection_result"),
+                                color = if (it.startsWith("Connection failed")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                }
             }
         }
         item {

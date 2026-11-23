@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [main, "feature/**", "fix/**"]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
@@ -96,6 +96,14 @@ jobs:
         with:
           name: apks
           path: apks
+
+      - name: Download Shizuku (latest release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p apks/shizuku
+          gh release download -R RikkaApps/Shizuku -p '*.apk' -D apks/shizuku || echo "Shizuku download failed"
+          ls -l apks/shizuku
 
       - name: Enable KVM
         run: |

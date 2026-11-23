@@ -297,6 +297,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun requestShizuku() = repo.access.requestShizukuPermission()
 
+    private val _connection = MutableStateFlow<String?>(null)
+    /** Result of the last "Test connection" on the Setup screen. */
+    val connection: StateFlow<String?> = _connection.asStateFlow()
+
+    fun testConnection() = viewModelScope.launch {
+        _connection.value = "Testing…"
+        _connection.value = repo.access.testConnection()
+    }
+
     fun requestRoot() = viewModelScope.launch {
         val ok = repo.access.requestRoot()
         say(if (ok) "Root access granted." else "Root access was not granted.")

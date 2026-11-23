@@ -11,3 +11,8 @@
 -keep,includedescriptorclasses class io.github.cyb3rl00m.prune.**$$serializer { *; }
 -keepclassmembers class io.github.cyb3rl00m.prune.** { *** Companion; }
 -keepclasseswithmembers class io.github.cyb3rl00m.prune.** { kotlinx.serialization.KSerializer serializer(...); }
+
+# Shizuku.newProcess is private since API 13 and called by reflection (fallback when the user service
+# cannot start), so R8 must keep it and the process class it returns.
+-keep class rikka.shizuku.Shizuku { *; }
+-keep class rikka.shizuku.ShizukuRemoteProcess { *; }

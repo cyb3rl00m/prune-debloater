@@ -54,6 +54,29 @@ class AccessManager(private val context: Context) {
     }
     private val permissionResult = Shizuku.OnRequestPermissionResultListener { _, _ -> refresh() }
 
+    /**
+     * Runs `id` through the active shell and describes the result, for the Setup screen and bug reports.
+     * Example: "Connected: uid 2000 (shell) via Shizuku user service".
+     */
+    suspend fun testConnection(): String {
+        val shell = shell() ?: return "No Shizuku or root access yet."
+        val start = System.currentTimeMillis()
+        val r = runCatching { shell.run(Commands.id(), 30_000) }.getOrElse { ShellResult(-4, "", it.message ?: it.toString()) }
+        val ms = System.currentTimeMillis() - start
+        val uid = OutputParsers.uidOf(r.stdout)
+        val via = (shell as? ShizukuShell)?.let { s ->
+            buildString {
+                append("Shizuku ").append(s.backend?.label ?: "(no backend)")
+                s.userServiceError?.let { append("; user service failed: ").append(it) }
+            }
+        } ?: shell.kind.label
+        return if (r.exitCode == 0 && uid != null) {
+            "Connected: uid $uid (${if (uid == 0) "root" else if (uid == 2000) "shell" else "other"}) via $via, ${ms} ms."
+        } else {
+            "Connection failed via $via: ${r.output.lineSequence().firstOrNull { it.isNotBlank() } ?: "exit code ${r.exitCode}"}"
+        }
+    }
+
     init {
         Shizuku.addBinderReceivedListenerSticky(binderReceived)
         Shizuku.addBinderDeadListener(binderDead)

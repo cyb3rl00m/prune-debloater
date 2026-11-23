@@ -44,6 +44,27 @@ class Executor(
         val log = mutableListOf<String>()
         val entries = mutableListOf<HistoryEntry>()
         val originals = mutableMapOf<String, OriginalState>()
+
+        // Check the connection once before changing anything: if Shizuku/root cannot run a command,
+        // every change would fail anyway, after a timeout each.
+        onProgress(ExecProgress(0, plan.changes.size, "Connecting to ${shell.kind.label}…", log.toList()))
+        val probe = runCatching { shell.run(Commands.id(), 30_000) }.getOrElse { ShellResult(-4, "", it.message ?: it.toString()) }
+        log += "$ id"
+        probe.output.lineSequence().take(3).forEach { if (it.isNotBlank()) log += "  $it" }
+        if (probe.exitCode != 0 || OutputParsers.uidOf(probe.stdout) == null) {
+            val why = probe.output.lineSequence().firstOrNull { it.isNotBlank() }?.take(200) ?: "exit code ${probe.exitCode}"
+            val message = "Not done: Prune could not run commands through ${shell.kind.label} ($why). Nothing was changed."
+            log += "  ✗ $message"
+            plan.changes.forEach { c ->
+                entries += HistoryEntry(UUID.randomUUID().toString(), c, before = null, after = null, success = false, message = message)
+            }
+            onProgress(ExecProgress(plan.changes.size, plan.changes.size, "", log.toList()))
+            val batch = Batch(UUID.randomUUID().toString(), plan.title, plan.origin, System.currentTimeMillis(), shell.kind.label, entries)
+            history.addBatch(batch, emptyMap())
+            return@withContext batch
+        }
+        log += "  connected as uid ${OutputParsers.uidOf(probe.stdout)}" + ((shell as? io.github.cyb3rl00m.prune.core.shell.ShizukuShell)?.backend?.let { " (${it.label})" } ?: "")
+
         plan.changes.forEachIndexed { i, change ->
             onProgress(ExecProgress(i, plan.changes.size, change.label, log.toList()))
             val before = readState(change, shell)
@@ -60,11 +81,14 @@ class Executor(
                 return r
             }
             var message = ""
+            var refusedBy: String? = null
             val result: ShellResult? = when (change.type) {
                 ChangeType.DISABLE -> {
                     var r = run(Commands.disable(change.packageName!!, user))
-                    if (!OutputParsers.disableSucceeded(r) && change.fallbackUninstall) {
-                        message = "Disabling was refused (${firstLine(r)}). Uninstalled for this user instead."
+                    // Fall back only when the firmware ran the command and refused it, never on connection errors.
+                    if (!OutputParsers.disableSucceeded(r) && change.fallbackUninstall && r.exitCode >= 0 &&
+                        packageState(change.packageName) == "enabled") {
+                        refusedBy = firstLine(r)
                         r = run(Commands.uninstallForUser(change.packageName, user))
                     }
                     r
@@ -99,6 +123,10 @@ class Executor(
                 ChangeType.SETTING_PUT -> after == (change.params["value"] ?: "null")
                 ChangeType.TRIM_CACHES, ChangeType.DEXOPT -> result?.exitCode == 0
                 ChangeType.UNINSTALL_APP -> false
+            }
+            if (refusedBy != null) {
+                message = if (after == "removed") "Disabling was refused ($refusedBy). Uninstalled for this user instead."
+                else "Disabling was refused ($refusedBy). Uninstalling for this user also failed: ${result?.let(::firstLine).orEmpty()}"
             }
             if (message.isEmpty()) {
                 message = if (success) "Done." else "Not done: " + (result?.let(::firstLine)?.ifBlank { null }
