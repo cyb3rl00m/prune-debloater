@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import rikka.shizuku.Shizuku
 import java.io.File
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -134,11 +133,16 @@ class ShizukuShell(
             val err = StringBuilder()
             val t1 = thread { runCatching { out.append(p.inputStream.bufferedReader().readText()) } }
             val t2 = thread { runCatching { err.append(p.errorStream.bufferedReader().readText()) } }
-            val done = p.waitFor(timeoutMs.coerceIn(1_000, 30 * 60_000), TimeUnit.MILLISECONDS)
+            // Shizuku's timed waitFor() can return before the process exits (then exitValue() throws
+            // "process hasn't exited"), so wait with the plain blocking call on a watcher thread.
+            var exit: Int? = null
+            val waiter = thread { exit = runCatching { p.waitFor() }.getOrNull() }
+            waiter.join(timeoutMs.coerceIn(1_000, 30 * 60_000))
+            val done = exit != null
             if (!done) runCatching { p.destroy() }
             t1.join(2_000)
             t2.join(2_000)
-            ShellResult(if (done) p.exitValue() else -2, out.toString().take(ShellService.MAX_OUTPUT),
+            ShellResult(exit ?: -2, out.toString().take(ShellService.MAX_OUTPUT),
                 if (done) err.toString().take(ShellService.MAX_OUTPUT) else "Timed out after ${timeoutMs / 1000} s")
         } catch (e: Exception) {
             val cause = (e as? java.lang.reflect.InvocationTargetException)?.targetException ?: e
