@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/cyb3rl00m/prune-debloater/releases/latest"><img src="https://img.shields.io/badge/release-v2.0.0-3DDC97" alt="Release"></a>
+  <a href="https://github.com/cyb3rl00m/prune-debloater/releases/latest"><img src="https://img.shields.io/badge/release-v2.1.0-3DDC97" alt="Release"></a>
   <img src="https://img.shields.io/badge/Android-9%2B-7C6CFF" alt="Android 9+">
   <img src="https://img.shields.io/badge/root-not%20required-0B0F17" alt="No root required">
   <img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL-3.0">
@@ -31,9 +31,9 @@ Prune is the Android counterpart of tools like Chris Titus Tech's WinUtil: it gi
 
 ## Download
 
-Get **`Prune-2.0.0.apk`** from the [latest release](https://github.com/cyb3rl00m/prune-debloater/releases/latest), open it on the phone and allow installing from your browser or file manager. The SHA-256 checksum is in `SHA256SUMS.txt` next to it.
+Get **`Prune-2.1.0.apk`** from the [latest release](https://github.com/cyb3rl00m/prune-debloater/releases/latest), open it on the phone and allow installing from your browser or file manager. The SHA-256 checksum is in `SHA256SUMS.txt` next to it.
 
-**Upgrading from 1.x:** install 2.0.0 over it. It is signed with the same key, so history, settings and your "features you use" answers are kept.
+**Upgrading from 1.x or 2.0:** install 2.1.0 over it. It is signed with the same key, so history, settings and your "features you use" answers are kept.
 
 ## Supported manufacturers
 

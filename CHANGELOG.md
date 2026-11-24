@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.0 — unreleased
+## 2.1.0 — 2026-11-24
 
 **Fixed**
 - Shizuku: on some phones (reported on Xiaomi HyperOS) Prune's Shizuku user service never connected, so every change waited 15 seconds and failed. Prune now falls back to running commands through Shizuku's own process, the same path other Shizuku apps use.
