@@ -1,6 +1,7 @@
 {
  "files": [
   "core.json",
+  "android_tv.json",
   "google_pixel.json",
   "honor.json",
   "huawei.json",

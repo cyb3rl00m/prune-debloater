@@ -1,6 +1,9 @@
 package io.github.cyb3rl00m.prune.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -140,8 +143,9 @@ fun PruneRoot(vm: AppViewModel) {
         },
     ) { padding: PaddingValues ->
         val bottomPadding = PaddingValues(bottom = padding.calculateBottomPadding())
-        Box(Modifier.fillMaxSize().padding(bottomPadding).consumeWindowInsets(bottomPadding)) {
-            NavHost(controller, startDestination = Routes.HOME) {
+        // Wide screens (tablets, TVs): keep the phone layout readable instead of stretching it edge to edge.
+        Box(Modifier.fillMaxSize().padding(bottomPadding).consumeWindowInsets(bottomPadding), contentAlignment = Alignment.TopCenter) {
+            NavHost(controller, startDestination = Routes.HOME, modifier = Modifier.widthIn(max = 840.dp)) {
                 composable(Routes.HOME) { HomeScreen(vm, nav) }
                 composable(Routes.DEBLOAT) { DebloatScreen(vm, nav) }
                 composable(Routes.APPS) { AppsScreen(vm, nav) }

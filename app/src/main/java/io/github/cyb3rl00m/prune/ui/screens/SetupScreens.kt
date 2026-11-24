@@ -85,17 +85,25 @@ fun SetupScreen(vm: AppViewModel, nav: Nav) {
                 StatusLine(access.shizukuRunning, "Shizuku running", if (access.shizukuRunning) "Running as ${if (access.shizukuUid == 0) "root" else "ADB (shell)"}." else "Start it in the Shizuku app (see steps below). It must be started again after every reboot.")
                 StatusLine(access.shizukuPermission, "Prune authorized", "Shizuku asks you once to allow Prune.")
                 if (access.shizukuTooOld) Banner("This Shizuku version is too old. Update Shizuku.", BannerKind.ERROR)
+                if (access.shizukuDenied) Banner("Prune was denied in Shizuku, so Shizuku won't ask again. Open Shizuku, go to Authorized applications and turn Prune on.", BannerKind.ERROR)
                 Spacer(Modifier.height(8.dp))
                 when {
-                    !access.shizukuInstalled -> Button(onClick = {
-                        open(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=moe.shizuku.privileged.api")).let {
-                            if (it.resolveActivity(context.packageManager) != null) it
-                            else Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/RikkaApps/Shizuku/releases"))
-                        })
-                    }, modifier = Modifier.fillMaxWidth()) { Text("Get Shizuku") }
+                    // GitHub first: it always has the latest build, and some store clients (Aurora Store) can't
+                    // open the Play listing and keep retrying their session.
+                    !access.shizukuInstalled -> {
+                        Button(onClick = { open(Intent(Intent.ACTION_VIEW, Uri.parse(SHIZUKU_RELEASES))) }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Download Shizuku from GitHub")
+                        }
+                        OutlinedButton(onClick = {
+                            open(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=moe.shizuku.privileged.api")))
+                        }, modifier = Modifier.fillMaxWidth()) { Text("Open in my app store") }
+                    }
                     !access.shizukuRunning -> Button(onClick = {
                         context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")?.let { open(it) }
                     }, modifier = Modifier.fillMaxWidth()) { Text("Open Shizuku") }
+                    access.shizukuDenied -> Button(onClick = {
+                        context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")?.let { open(it) }
+                    }, modifier = Modifier.fillMaxWidth()) { Text("Open Shizuku to allow Prune") }
                     !access.shizukuPermission -> Button(onClick = { vm.requestShizuku() }, modifier = Modifier.fillMaxWidth().testTag("authorize_shizuku")) {
                         Text("Authorize Prune in Shizuku")
                     }
@@ -127,8 +135,9 @@ fun SetupScreen(vm: AppViewModel, nav: Nav) {
                     "Connect to Wi-Fi. In Developer options turn on Wireless debugging (Android 11+; on older versions use the computer method below).",
                     "Open Shizuku → Start via Wireless debugging → Pairing. Shizuku shows a notification.",
                     "In Wireless debugging, tap Pair device with pairing code. Type the code into Shizuku's notification.",
-                    "In Shizuku tap Start. Then come back here and tap Authorize Prune.",
-                    "After a reboot, open Shizuku and tap Start again (pairing is remembered).",
+                    "In Shizuku tap Start. Then come back here and tap Authorize Prune, then Allow.",
+                    "Shizuku stops when the phone reboots or Wi-Fi changes. Open Shizuku and tap Start again (pairing is remembered, no new code needed).",
+                    "Pairing keeps failing? Keep the Wireless debugging screen open in split screen or a pop-up window while you type the code: some phones cancel pairing when you leave that screen.",
                 ) + runCatching { integration.extraSetupSteps(identity) }.getOrDefault(emptyList())).forEachIndexed { i, s -> Text("${i + 1}. $s", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 3.dp)) }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { open(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }, modifier = Modifier.fillMaxWidth()) {
@@ -280,3 +289,5 @@ fun DeviceScreen(vm: AppViewModel, nav: Nav) {
         }
     }
 }
+
+private const val SHIZUKU_RELEASES = "https://github.com/RikkaApps/Shizuku/releases/latest"

@@ -54,13 +54,15 @@ abstract class OemIntegration {
 /** Picks the integration for a device. Never throws: unknown devices get the generic integration. */
 object OemRegistry {
     val integrations: List<OemIntegration> = listOf(
-        SamsungIntegration, GooglePixelIntegration, XiaomiIntegration, HuaweiIntegration, HonorIntegration,
+        AndroidTvIntegration, SamsungIntegration, GooglePixelIntegration, XiaomiIntegration, HuaweiIntegration, HonorIntegration,
         OplusIntegration, MotorolaIntegration, SonyIntegration, NothingIntegration, AsusIntegration, VivoIntegration,
         TranssionIntegration, HmdIntegration, LenovoIntegration, ZteIntegration, LgIntegration,
     )
 
     fun detect(d: DeviceIdentity): OemIntegration = runCatching {
         if (d.isEmulator) EmulatorIntegration
+        // A TV box or TV made by a phone brand needs TV advice, not that brand's phone advice.
+        else if (d.isTv) AndroidTvIntegration
         else integrations.firstOrNull { runCatching { it.matches(d) }.getOrDefault(false) } ?: GenericAndroidIntegration
     }.getOrDefault(GenericAndroidIntegration)
 

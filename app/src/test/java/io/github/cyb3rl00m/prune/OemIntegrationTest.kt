@@ -2,6 +2,7 @@ package io.github.cyb3rl00m.prune
 
 import io.github.cyb3rl00m.prune.core.oem.CompatLevel
 import io.github.cyb3rl00m.prune.core.oem.DeviceIdentity
+import io.github.cyb3rl00m.prune.core.oem.AndroidTvIntegration
 import io.github.cyb3rl00m.prune.core.oem.EmulatorIntegration
 import io.github.cyb3rl00m.prune.core.oem.GenericAndroidIntegration
 import io.github.cyb3rl00m.prune.core.oem.GooglePixelIntegration
@@ -50,6 +51,8 @@ object MockDevices {
     val emulator = device("Google", "google", "sdk_gphone64_x86_64", fingerprint = "google/sdk_gphone64_x86_64/emu64xa:15/AE3A/1:userdebug/dev-keys",
         props = mapOf("ro.kernel.qemu" to "1"))
     val weird = DeviceIdentity("", "", "", "", "", "", 28, "", "", emptyMap())
+    val googleTvStreamer = device("Google", "google", "Google TV Streamer", 34, "14", mapOf("ro.build.characteristics" to "tv,nosdcard"))
+    val xiaomiTvBox = device("Xiaomi", "Xiaomi", "MIBOX4", 28, "9", mapOf("ro.build.characteristics" to "tv"))
 }
 
 class OemIntegrationTest {
@@ -66,6 +69,7 @@ class OemIntegrationTest {
             MockDevices.realme to OplusIntegration, MockDevices.motorola to MotorolaIntegration, MockDevices.vivo to VivoIntegration,
             MockDevices.tecno to TranssionIntegration, MockDevices.unknown to GenericAndroidIntegration,
             MockDevices.emulator to EmulatorIntegration, MockDevices.weird to GenericAndroidIntegration,
+            MockDevices.googleTvStreamer to AndroidTvIntegration, MockDevices.xiaomiTvBox to AndroidTvIntegration,
         )
         for ((d, i) in expected) assertSame("${d.manufacturer} ${d.model}", i, OemRegistry.detect(d))
     }
@@ -138,5 +142,15 @@ class OemIntegrationTest {
         assertEquals("V14", m["ro.miui.ui.version.name"])
         assertEquals("", m["empty"])
         assertEquals(3, m.size)
+    }
+
+    @Test fun androidTv() {
+        assertEquals("Android TV 9", OemRegistry.firmwareSafe(AndroidTvIntegration, MockDevices.xiaomiTvBox).toString())
+        assertEquals("Google TV 14", OemRegistry.firmwareSafe(AndroidTvIntegration, MockDevices.googleTvStreamer).toString())
+        assertEquals("Google TV Streamer", AndroidTvIntegration.brandName(MockDevices.googleTvStreamer))
+        assertEquals(CompatLevel.EXPERIMENTAL, AndroidTvIntegration.compat)
+        // Phones are never treated as TVs.
+        assertSame(GooglePixelIntegration, OemRegistry.detect(MockDevices.pixel))
+        assertTrue(!MockDevices.pixel.isTv && MockDevices.googleTvStreamer.isTv)
     }
 }

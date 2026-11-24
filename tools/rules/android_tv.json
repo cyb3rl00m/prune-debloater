@@ -1,0 +1,30 @@
+{
+  "schema": 2,
+  "manufacturer": "Android TV / Google TV",
+  "updated": "2026-11-24",
+  "comment": "Packages found on Android TV and Google TV devices (Google TV Streamer, Chromecast with Google TV, TV boxes and TVs). Conservative: a TV has no recovery screen a normal user can reach, so anything near setup, input, the remote or the home screen is locked or HIGH.",
+  "locked": [
+    {"id": "com.google.android.apps.tv.launcherx", "reason": "Google TV home screen. Without it the device has no launcher."},
+    {"id": "com.google.android.tvlauncher", "reason": "Android TV home screen. Some devices factory-reset settings on the next boot without it."},
+    {"id": "com.android.tv.settings", "reason": "TV Settings app: needed to change anything, including undoing Prune's changes."},
+    {"id": "com.google.android.tungsten.setupwraith", "reason": "TV setup. Removing it breaks sound and volume settings on some TVs."},
+    {"id": "com.google.android.tv.axel", "reason": "Infrared service: needed for the remote to control TV volume and power."},
+    {"id": "com.android.providers.tv", "reason": "TV channel database used by the home screen and live TV inputs."}
+  ],
+  "lockedPrefixes": [],
+  "ecosystems": [],
+  "featureTags": [],
+  "entries": {
+    "com.google.android.tv.dfuservice": {"level": 4, "risk": "HIGH", "note": "Firmware updates for the remote. Keep it, or the remote can stay on buggy firmware."},
+    "com.google.android.tv.remote.service": {"level": 4, "risk": "HIGH", "note": "Pairing with the Google TV phone remote and the Google Home app."},
+    "com.google.android.katniss": {"level": 4, "risk": "HIGH", "note": "Google voice search and Assistant on TV. The remote's microphone button stops working."},
+    "com.google.android.tvrecommendations": {"level": 4, "risk": "HIGH", "note": "Android TV Core Services: content rows on the home screen. Some launchers misbehave without it."},
+    "com.google.android.tv.remotecontrol.logging": {"level": 3, "risk": "MODERATE", "note": "Remote control logging."},
+    "com.google.android.apps.tv.dreamx": {"level": 2, "risk": "LOW", "note": "Ambient mode (photo screensaver). The TV uses the plain Android screensaver instead."},
+    "com.google.android.apps.tv.netoscope": {"level": 2, "risk": "LOW", "note": "Connectivity diagnostics."},
+    "com.google.android.youtube.tvmusic": {"level": 2, "risk": "LOW", "note": "YouTube Music for TV."},
+    "com.google.android.tv.bugreportsender": {"level": 1, "risk": "SAFE", "note": "Sends bug reports to Google."},
+    "android.autoinstalls.config.google.sabrina": {"level": 1, "risk": "SAFE", "note": "Installs partner apps during first setup. Not used afterwards."}
+  },
+  "prefixEntries": []
+}

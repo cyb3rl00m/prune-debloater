@@ -15,6 +15,8 @@ data class AccessState(
     val shizukuRunning: Boolean = false,
     val shizukuPermission: Boolean = false,
     val shizukuTooOld: Boolean = false,
+    /** The user tapped Deny in Shizuku's dialog. Shizuku then ignores new requests until Prune is allowed in Shizuku itself. */
+    val shizukuDenied: Boolean = false,
     /** 0 if Shizuku was started with root, 2000 if started through ADB / wireless debugging. */
     val shizukuUid: Int? = null,
     val rootGranted: Boolean = false,
@@ -92,12 +94,15 @@ class AccessManager(private val context: Context) {
         val permission = test || (running && !tooOld &&
             runCatching { Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED }.getOrDefault(false))
         val uid = if (test) 2000 else if (running) runCatching { Shizuku.getUid() }.getOrNull() else null
+        val denied = !permission && running && !tooOld &&
+            runCatching { Shizuku.shouldShowRequestPermissionRationale() }.getOrDefault(false)
         _state.update {
             it.copy(
                 shizukuInstalled = installed || running,
                 shizukuRunning = running,
                 shizukuPermission = permission,
                 shizukuTooOld = tooOld,
+                shizukuDenied = denied,
                 shizukuUid = uid,
                 usageAccess = UsageReader(context).hasAccess(),
                 writeSecureSettings = context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) ==

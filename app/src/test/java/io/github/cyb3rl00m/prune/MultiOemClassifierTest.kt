@@ -40,8 +40,15 @@ class MultiOemClassifierTest {
             "com.coloros.safecenter", "com.oplus.securitypermission", "com.coloros.securitypermission",
             "com.huawei.systemmanager", "com.huawei.ims", "com.hihonor.systemmanager", "com.hihonor.keychain",
             "com.motorola.android.providers.settings", "com.vivo.permissionmanager",
+            "com.google.android.apps.tv.launcherx", "com.google.android.tvlauncher", "com.android.tv.settings",
+            "com.google.android.tungsten.setupwraith", "com.google.android.tv.axel",
         )
         for (p in critical) assertEquals(p, Risk.LOCKED, c.classify(TestData.facts(p)).risk)
+    }
+
+    @Test fun androidTvRemoteAndVoiceAreHighRisk() {
+        for (p in listOf("com.google.android.katniss", "com.google.android.tv.remote.service", "com.google.android.tv.dfuservice"))
+            assertEquals(p, Risk.HIGH, c.classify(TestData.facts(p)).risk)
     }
 
     @Test fun manufacturerLabels() {

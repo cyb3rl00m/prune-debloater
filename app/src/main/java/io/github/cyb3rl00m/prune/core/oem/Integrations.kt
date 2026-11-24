@@ -284,6 +284,31 @@ object GenericAndroidIntegration : OemIntegration() {
 }
 
 /** The Android emulator: where Prune's automated tests run. */
+object AndroidTvIntegration : OemIntegration() {
+    override val id = "android_tv"
+    override val title = "Android TV / Google TV"
+    override val compat = CompatLevel.EXPERIMENTAL
+    override val packagePrefixes = listOf("com.google.android.tv", "com.google.android.apps.tv.")
+    override fun matches(d: DeviceIdentity) = d.isTv
+    override fun firmware(d: DeviceIdentity) = Firmware(
+        if (d.props.keys.any { it.startsWith("ro.com.google.gtv") } || d.model.contains("Google TV", ignoreCase = true)) "Google TV" else "Android TV",
+        d.release.takeIf { it.isNotBlank() },
+    )
+    override fun brandName(d: DeviceIdentity) = d.model.takeIf { it.isNotBlank() } ?: "Android TV"
+    override val developerOptionsSteps = listOf(
+        "Settings → System → About → select Android TV OS build 7 times. Developer options appear in Settings → System.",
+    )
+    override fun extraSetupSteps(d: DeviceIdentity) = listOf(
+        "On a TV the easiest way to start Shizuku is from a computer on the same network: turn on USB debugging (or Wireless debugging), run `adb connect <TV IP address>`, then run the start command shown below.",
+        "Pairing codes from Shizuku's notification are hard to enter on a TV. If Wireless debugging pairing does not work, use the computer method.",
+    )
+    override fun limitations(d: DeviceIdentity, services: ServicesInfo) = listOf(
+        Limitation("No easy recovery", "A TV has no recovery screen most people can reach. Prune locks the home screen, TV Settings, setup and remote services. Only remove what you know."),
+        Limitation("Tested on the emulator only", "Prune's TV support is tested on the Android TV emulator, not on a Google TV Streamer or other TV hardware yet."),
+        Limitation("Use the remote's D-pad", "Every screen works with the D-pad: arrows to move, center button to select, Back to go back."),
+    )
+}
+
 object EmulatorIntegration : OemIntegration() {
     override val id = "emulator"
     override val title = "Android emulator"

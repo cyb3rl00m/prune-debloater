@@ -25,6 +25,10 @@ data class DeviceIdentity(
 
     fun prop(name: String): String? = props[name]?.trim()?.takeIf { it.isNotEmpty() }
 
+    /** Android TV / Google TV device (TV boxes, streamers, TVs). */
+    val isTv: Boolean
+        get() = prop("ro.build.characteristics")?.split(',')?.any { it.trim() == "tv" } == true
+
     /** True on the Android emulator (no OEM firmware, used for Prune's automated tests). */
     val isEmulator: Boolean
         get() = prop("ro.kernel.qemu") == "1" || prop("ro.boot.qemu") == "1" ||
