@@ -26,6 +26,7 @@ data class OptimizeState(
     val notifications: List<AppPackage>? = null,
     val storage: StorageSummary? = null,
     val resources: List<ResourceItem>? = null,
+    val display: Optimizer.DisplayState? = null,
 )
 
 class OptimizeViewModel(application: Application) : AndroidViewModel(application) {
@@ -43,6 +44,7 @@ class OptimizeViewModel(application: Application) : AndroidViewModel(application
             try {
                 when (section) {
                     OptimizationSection.ANIMATIONS -> _state.update { it.copy(animations = optimizer.animationState()) }
+                    OptimizationSection.DISPLAY -> _state.update { it.copy(display = optimizer.displayState()) }
                     OptimizationSection.BACKGROUND -> {
                         val list = optimizer.backgroundCandidates(apps, usage, shell)
                         _state.update { it.copy(background = list) }

@@ -30,6 +30,14 @@ class CommandsTest {
         assertThrows(IllegalArgumentException::class.java) { Commands.appOpSet("a.b", "SYSTEM_ALERT_WINDOW", "allow", 0) }
         assertThrows(IllegalArgumentException::class.java) { Commands.settingsPut("adb_enabled", "0") }
         assertThrows(IllegalArgumentException::class.java) { Commands.settingsPut("window_animation_scale", "1;reboot") }
+        // Each key only in its own namespace.
+        assertThrows(IllegalArgumentException::class.java) { Commands.settingsPut("high_text_contrast_enabled", "1") }
+        assertThrows(IllegalArgumentException::class.java) { Commands.settingsPut("min_refresh_rate", "120.0", "global") }
+        assertThrows(IllegalArgumentException::class.java) { Commands.settingsPut("screen_brightness", "1", "system") }
+        assertThrows(IllegalArgumentException::class.java) { Commands.settingsPut("window_animation_scale", "1", "shell") }
+        assertEquals(listOf("settings", "put", "system", "min_refresh_rate", "120.0"), Commands.settingsPut("min_refresh_rate", "120.0", "system"))
+        assertEquals(listOf("settings", "delete", "secure", "high_text_contrast_enabled"), Commands.settingsDelete("high_text_contrast_enabled", "secure"))
+        assertEquals(listOf("sm", "idle-maint", "run"), Commands.idleMaintenance())
         assertThrows(IllegalArgumentException::class.java) { Commands.disable("a.b", -1) }
     }
 

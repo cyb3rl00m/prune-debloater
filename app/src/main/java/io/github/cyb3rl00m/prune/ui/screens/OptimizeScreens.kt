@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.FlowRow
+import io.github.cyb3rl00m.prune.core.optimize.RefreshMode
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Animation
 import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.DisplaySettings
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Speed
@@ -66,6 +70,7 @@ import io.github.cyb3rl00m.prune.ui.components.formatDuration
 
 private fun iconOf(s: OptimizationSection): ImageVector = when (s) {
     OptimizationSection.ANIMATIONS -> Icons.Outlined.Animation
+    OptimizationSection.DISPLAY -> Icons.Outlined.DisplaySettings
     OptimizationSection.BACKGROUND -> Icons.Outlined.Bolt
     OptimizationSection.BATTERY_EXEMPTIONS -> Icons.Outlined.BatteryChargingFull
     OptimizationSection.PERMISSIONS -> Icons.Outlined.PrivacyTip
@@ -100,6 +105,7 @@ fun OptimizeScreen(vm: AppViewModel, ovm: OptimizeViewModel, nav: Nav) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OptimizeSectionScreen(vm: AppViewModel, ovm: OptimizeViewModel, nav: Nav, section: OptimizationSection) {
     val state by ovm.state.collectAsStateWithLifecycle()
@@ -146,8 +152,8 @@ fun OptimizeSectionScreen(vm: AppViewModel, ovm: OptimizeViewModel, nav: Nav, se
                         Text("Current scales", style = MaterialTheme.typography.titleSmall)
                         if (a != null) Text("Window ${a.window}× · Transition ${a.transition}× · Animator ${a.animator}×", style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(1f to "1× (default)", 0.5f to "0.5×", 0f to "Off").forEach { (v, label) ->
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(1f to "1× (default)", 0.5f to "0.5×", 0.25f to "0.25×", 0f to "Off").forEach { (v, label) ->
                                 FilterChip(selected = a?.uniform == v, onClick = {
                                     review("Animation speed $label", vm.repo.optimizer.animationChanges(v))
                                 }, label = { Text(label) }, modifier = Modifier.testTag("anim_$v"))
@@ -158,6 +164,39 @@ fun OptimizeSectionScreen(vm: AppViewModel, ovm: OptimizeViewModel, nav: Nav, se
                             Text("Without Shizuku you can still export the change as an ADB script on the review screen.",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+                    }
+                }
+            }
+            OptimizationSection.DISPLAY -> {
+                val d = state.display
+                if (d != null) {
+                    item {
+                        PruneCard {
+                            Text("Refresh rate", style = MaterialTheme.typography.titleSmall)
+                            val maxHz = d.refreshRates.maxOrNull()
+                            Text("Screen supports: ${d.refreshRates.joinToString(", ") { "${it.toInt()} Hz" }.ifEmpty { "unknown" }}" +
+                                " · peak ${d.peak ?: "default"} · minimum ${d.min ?: "default"}",
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(8.dp))
+                            if (maxHz == null || d.refreshRates.size < 2) {
+                                Text("This screen has a single refresh rate, so there is nothing to change.", style = MaterialTheme.typography.bodyMedium)
+                            } else FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                listOf(RefreshMode.DEFAULT to "Default (adaptive)", RefreshMode.ALWAYS_MAX to "Always ${maxHz.toInt()} Hz",
+                                    RefreshMode.CAP_60 to "Cap at 60 Hz").forEach { (m, label) ->
+                                    FilterChip(selected = false, onClick = {
+                                        review("Refresh rate: $label", vm.repo.optimizer.refreshRateChanges(m, maxHz))
+                                    }, label = { Text(label) }, modifier = Modifier.testTag("refresh_${m.name}"))
+                                }
+                            }
+                        }
+                    }
+                    if (d.blurSupported) item {
+                        OptionSwitch("Turn off window blur", "Removes the blurred background behind dialogs and the notification shade.",
+                            d.blurDisabled) { review(if (it) "Turn off window blur" else "Turn on window blur", listOf(vm.repo.optimizer.blurChange(it))) }
+                    }
+                    item {
+                        OptionSwitch("High contrast text", "Draws text with an outline for better readability.",
+                            d.highContrast) { review(if (it) "High contrast text on" else "High contrast text off", listOf(vm.repo.optimizer.contrastChange(it))) }
                     }
                 }
             }
@@ -244,6 +283,9 @@ fun OptimizeSectionScreen(vm: AppViewModel, ovm: OptimizeViewModel, nav: Nav, se
                             Spacer(Modifier.height(10.dp))
                             Button(onClick = { review("Clear app caches", listOf(vm.repo.optimizer.trimCachesChange())) },
                                 enabled = true, modifier = Modifier.fillMaxWidth().testTag("trim_caches")) { Text("Clear all app caches…") }
+                            Spacer(Modifier.height(6.dp))
+                            OutlinedButton(onClick = { review("Storage maintenance", listOf(vm.repo.optimizer.idleMaintenanceChange())) },
+                                modifier = Modifier.fillMaxWidth().testTag("idle_maint")) { Text("Run storage maintenance (fstrim)…") }
                         }
                     }
                     item { SectionHeader("Largest apps") }

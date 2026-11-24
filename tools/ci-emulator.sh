@@ -125,6 +125,27 @@ else
   adb pull /data/local/tmp/release-connection.png "$OUT/screens/release-shizuku-connection.png" >/dev/null || true
   adb logcat -d > "$OUT/logcat-release-shizuku.txt"
   [ "$RELEASE_OK" = 1 ] || { echo "Release build could not run commands through Shizuku"; STATUS=1; }
+
+  echo "== Quick Settings tile (release build, through Shizuku)"
+  adb shell settings put global window_animation_scale 1
+  adb shell settings put global transition_animation_scale 1
+  adb shell settings put global animator_duration_scale 1
+  adb shell cmd statusbar add-tile io.github.cyb3rl00m.prune/.tiles.AnimationTile >/dev/null 2>&1
+  sleep 2
+  adb shell cmd statusbar click-tile io.github.cyb3rl00m.prune/.tiles.AnimationTile
+  SCALE=""
+  for _ in $(seq 1 30); do
+    SCALE=$(adb shell settings get global window_animation_scale | tr -d '\r')
+    [ "$SCALE" = "0.5" ] && break
+    sleep 1
+  done
+  echo "window_animation_scale after tile click: $SCALE" | tee "$OUT/tile.txt"
+  [ "$SCALE" = "0.5" ] || { echo "Animation tile did not change the setting"; STATUS=1; }
+  adb shell cmd statusbar expand-settings; sleep 2
+  adb shell screencap -p /data/local/tmp/qs.png
+  adb pull /data/local/tmp/qs.png "$OUT/screens/quick-settings-tile.png" >/dev/null || true
+  adb shell cmd statusbar collapse
+  adb shell settings put global window_animation_scale 1
 fi
 
 echo "== Exit status $STATUS"

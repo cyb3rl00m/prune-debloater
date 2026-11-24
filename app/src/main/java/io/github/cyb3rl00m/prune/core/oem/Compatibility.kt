@@ -27,6 +27,7 @@ enum class Operation(val label: String, val requirement: Requirement, val minSdk
     ANIMATIONS("Change animation speed", Requirement.SHELL_OR_SECURE_SETTINGS, changeTypes = setOf(ChangeType.SETTING_PUT)),
     CACHES("Clear all app caches", Requirement.SHELL, changeTypes = setOf(ChangeType.TRIM_CACHES)),
     DEXOPT("Compile apps now", Requirement.SHELL, changeTypes = setOf(ChangeType.DEXOPT)),
+    IDLE_MAINT("Storage maintenance (fstrim)", Requirement.SHELL, changeTypes = setOf(ChangeType.IDLE_MAINT)),
     BATTERY_STATS("Battery estimates per app", Requirement.SHELL),
 }
 

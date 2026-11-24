@@ -194,10 +194,12 @@ object ChangeCommands {
             ChangeType.SETTING_PUT -> {
                 val key = change.params.getValue("key")
                 val value = change.params["value"]
-                listOf(if (value == null) Commands.settingsDelete(key) else Commands.settingsPut(key, value))
+                val ns = change.params["ns"] ?: "global"
+                listOf(if (value == null) Commands.settingsDelete(key, ns) else Commands.settingsPut(key, value, ns))
             }
             ChangeType.TRIM_CACHES -> listOf(Commands.trimCaches())
             ChangeType.DEXOPT -> listOf(Commands.backgroundDexopt())
+            ChangeType.IDLE_MAINT -> listOf(Commands.idleMaintenance())
             ChangeType.UNINSTALL_APP -> emptyList()
         }
     }
@@ -248,7 +250,7 @@ object Inverse {
             ChangeType.SETTING_PUT -> base.copy(
                 params = if (before == null || before == "null") change.params - "value" else change.params + ("value" to before),
                 explanation = "Restores the previous value (${before ?: "system default"}).")
-            ChangeType.TRIM_CACHES, ChangeType.DEXOPT, ChangeType.UNINSTALL_APP -> null
+            ChangeType.TRIM_CACHES, ChangeType.DEXOPT, ChangeType.IDLE_MAINT, ChangeType.UNINSTALL_APP -> null
         }
     }
 }

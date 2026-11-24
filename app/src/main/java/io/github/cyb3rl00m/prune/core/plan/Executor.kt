@@ -102,6 +102,7 @@ class Executor(
                     r
                 }
                 ChangeType.DEXOPT -> run(Commands.backgroundDexopt(), 30 * 60_000L)
+                ChangeType.IDLE_MAINT -> run(Commands.idleMaintenance(), 30 * 60_000L)
                 ChangeType.UNINSTALL_APP -> null
                 else -> {
                     var last: ShellResult? = null
@@ -121,7 +122,7 @@ class Executor(
                 ChangeType.DEVICEIDLE_REMOVE -> after == "not-exempt"
                 ChangeType.DEVICEIDLE_ADD -> after == "exempt"
                 ChangeType.SETTING_PUT -> after == (change.params["value"] ?: "null")
-                ChangeType.TRIM_CACHES, ChangeType.DEXOPT -> result?.exitCode == 0
+                ChangeType.TRIM_CACHES, ChangeType.DEXOPT, ChangeType.IDLE_MAINT -> result?.exitCode == 0
                 ChangeType.UNINSTALL_APP -> false
             }
             if (refusedBy != null) {
@@ -201,8 +202,8 @@ class Executor(
                 if (pm.checkPermission(change.params.getValue("permission"), p!!) == PackageManager.PERMISSION_GRANTED) "granted" else "revoked"
             ChangeType.DEVICEIDLE_REMOVE, ChangeType.DEVICEIDLE_ADD ->
                 if (context.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(p!!)) "exempt" else "not-exempt"
-            ChangeType.SETTING_PUT -> Settings.Global.getString(context.contentResolver, change.params.getValue("key")) ?: "null"
-            ChangeType.TRIM_CACHES -> freeBytes().toString()
+            ChangeType.SETTING_PUT -> readSetting(change.params["ns"] ?: "global", change.params.getValue("key")) ?: "null"
+            ChangeType.TRIM_CACHES, ChangeType.IDLE_MAINT -> freeBytes().toString()
             ChangeType.DEXOPT -> null
         }
     }
@@ -214,19 +215,30 @@ class Executor(
         null -> "missing"
     }
 
+    private fun readSetting(namespace: String, key: String): String? = runCatching {
+        val cr = context.contentResolver
+        when (namespace) {
+            "secure" -> Settings.Secure.getString(cr, key)
+            "system" -> Settings.System.getString(cr, key)
+            else -> Settings.Global.getString(cr, key)
+        }
+    }.getOrNull()
+
     private suspend fun putSetting(change: PlannedChange, run: suspend (List<String>, Long) -> ShellResult): ShellResult {
         val key = change.params.getValue("key")
         val value = change.params["value"]
+        val namespace = change.params["ns"] ?: "global"
         val hasPermission = context.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) ==
             PackageManager.PERMISSION_GRANTED
-        if (hasPermission) {
+        // WRITE_SECURE_SETTINGS covers global and secure settings; system settings always go through the shell.
+        if (hasPermission && namespace != "system") {
             val ok = runCatching {
-                if (value == null) Settings.Global.putString(context.contentResolver, key, null)
+                if (namespace == "secure") Settings.Secure.putString(context.contentResolver, key, value)
                 else Settings.Global.putString(context.contentResolver, key, value)
             }.getOrDefault(false)
             if (ok) return ShellResult(0, "", "")
         }
-        return run(if (value == null) Commands.settingsDelete(key) else Commands.settingsPut(key, value), 60_000)
+        return run(if (value == null) Commands.settingsDelete(key, namespace) else Commands.settingsPut(key, value, namespace), 60_000)
     }
 
     private fun firstLine(r: ShellResult) = r.output.lineSequence().firstOrNull { it.isNotBlank() }?.take(200) ?: ""

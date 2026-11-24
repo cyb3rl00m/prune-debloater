@@ -50,6 +50,7 @@ Prune adapts to the detected device automatically.
 | Motorola | My UX | Experimental |
 | Sony, Nothing, ASUS, vivo/iQOO, Tecno/Infinix/itel, Nokia/HMD, Lenovo, ZTE/nubia, LG | | Generic |
 | Any other Android 9+ phone | | Generic |
+| Android TV / Google TV (Google TV Streamer, Chromecast with Google TV, TV boxes) | Android TV OS, Google TV | Experimental |
 
 - **Partially tested:** dedicated rules; the debloat engine is tested on stock Android, but not on this brand's hardware.
 - **Experimental:** dedicated rules and known firmware limitations, tested only with simulated devices.
@@ -80,7 +81,7 @@ Before anything is selected you tell Prune which features you use. The list adap
 
 **Compatibility report.** Manufacturer, model, Android version, firmware, Google/Huawei services, available methods, supported and unsupported operations, required permissions, Shizuku and root status, known limitations, and what has already succeeded or failed on this device. Shareable as text.
 
-**Optimization center.** Only changes with a real technical effect, each explained in the app: animation scales, background restriction for unused apps, battery-optimization exemptions, sensitive-permission and notification audits, storage per app and cache trimming (free space measured), screen time and Android's own battery estimates, and app compilation. Prune does not kill processes, change CPU/GPU governors, or touch thermal management.
+**Optimization center.** Only changes with a real technical effect, each explained in the app: animation scales (1×, 0.5×, 0.25×, off), refresh rate (adaptive, always max, cap at 60 Hz), window blur, high contrast text, background restriction for unused apps, battery-optimization exemptions, sensitive-permission and notification audits, storage per app and cache trimming (free space measured), storage maintenance (`sm idle-maint run`: fstrim), screen time and Android's own battery estimates, and app compilation. Two Quick Settings tiles (fast animations, clear caches) run the same reviewed changes from the notification shade. Prune does not kill processes, change CPU/GPU governors, or touch thermal management.
 
 **Restore center.** Full history with the state before and after each change, undo per change or per batch, "restore original state", a list of every system package currently disabled or removed (by any tool), and an emergency ADB restore script.
 
@@ -100,7 +101,7 @@ No Shizuku and no root? Every plan can be exported as an ADB script and run from
 
 Prune shows these steps adapted to your phone under **Home → Set up**.
 
-1. Install Shizuku from Google Play or [GitHub](https://github.com/RikkaApps/Shizuku/releases).
+1. Install Shizuku from [GitHub](https://github.com/RikkaApps/Shizuku/releases/latest) (recommended: always the latest version) or Google Play.
 2. Turn on Developer options: **Settings → About phone →** tap **Build number** 7 times. (Galaxy: *Software information → Build number*. Xiaomi: *OS version* or *MIUI version*. OPPO/OnePlus/realme: *About device → Version → Build number*.)
 3. Connect to Wi-Fi. In **Developer options** turn on **Wireless debugging**.
 4. Open Shizuku → **Start via Wireless debugging → Pairing**. In Wireless debugging tap **Pair device with pairing code** and type the code into Shizuku's notification.
@@ -113,6 +114,12 @@ Extra switch on some firmwares:
 - **OPPO, OnePlus, realme:** turn on *Disable permission monitoring*. Without it permission and background changes are refused.
 
 After a reboot open Shizuku and tap **Start** again.
+
+**On a TV:** pairing codes from Shizuku's notification are hard to enter with a remote. The easiest way is a computer on the same network: turn on USB debugging (or Wireless debugging) in the TV's Developer options, run `adb connect <TV IP address>`, then `adb shell sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh`.
+
+**Tapped Deny in Shizuku by mistake?** Shizuku then ignores new requests. Open Shizuku → *Authorized applications* and turn Prune on.
+
+**Check it works:** *Home → Set up → Test connection* shows whether Prune can run commands and how (`Connected: uid 2000 (shell) via Shizuku user service`).
 
 ## Safety model
 
@@ -133,6 +140,9 @@ After a reboot open Shizuku and tap **Start** again.
 | Permission or background changes fail on OPPO/OnePlus/realme | Turn on *Disable permission monitoring* in Developer options. |
 | An app came back after a system update | Some firmwares restore system apps during updates. Run your profile again. |
 | Prune says "Limited access" after a reboot | Shizuku stops on reboot: open Shizuku and tap Start. |
+| "Not done: Prune could not run commands through Shizuku" | Shizuku is running but did not accept Prune's commands. Open *Set up → Test connection* and include its text in a bug report. Nothing was changed. |
+| "Authorize Prune in Shizuku" does nothing | Prune was denied once. Open Shizuku → *Authorized applications* and turn Prune on. |
+| The app store loops when opening Shizuku | Some store clients (for example Aurora Store) can't open the listing. Use *Download Shizuku from GitHub*. |
 | The phone misbehaves after a change | **Restore → History → Undo**. If the phone cannot be used normally, connect it to a computer and run the emergency restore script, or `adb shell pm install-existing --user 0 <package>` and `adb shell pm enable --user 0 <package>`. |
 
 ## Known limitations
@@ -152,7 +162,9 @@ After a reboot open Shizuku and tap **Start** again.
 | Device identity, rule loading, duplicate detection, compatibility report on a real Android system | Instrumented tests on the emulator | Verified on emulator |
 | Full UI flow: every screen, disable a package and undo it through the UI | Compose UI tests with screenshots on the emulator | Verified on emulator |
 | Signed release APK installs and launches | Emulator smoke test | Verified on emulator |
-| Shizuku user service binding, root through `su`, manufacturer-specific behaviour | Needs real phones | **Needs device testing** |
+| Real Shizuku (latest release): authorization, user service, fallback through Shizuku's own process, disable/enable round trip, the release APK's *Test connection* and Quick Settings tile | Shizuku started with adb on the emulator, debug and release builds | Verified on emulator |
+| Release APK on Android TV: listed in the TV launcher, opened and navigated with the D-pad only | Android TV emulator (API 34) | Verified on emulator |
+| Root through `su`, manufacturer-specific behaviour, Shizuku on manufacturer firmware | Needs real phones | **Needs device testing** |
 
 ## Build from source
 

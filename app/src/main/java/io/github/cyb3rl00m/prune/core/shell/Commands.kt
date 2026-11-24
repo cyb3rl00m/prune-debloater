@@ -31,7 +31,13 @@ object Commands {
     private val PERMISSION = Regex("^[A-Za-z][A-Za-z0-9_.]*$")
     val APP_OPS = setOf("RUN_ANY_IN_BACKGROUND", "RUN_IN_BACKGROUND", "GET_USAGE_STATS")
     val APP_OP_MODES = setOf("allow", "ignore", "deny", "default", "foreground")
-    val GLOBAL_SETTINGS = setOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale")
+    /** Settings Prune may change, per namespace (global, secure, system). Values are always plain numbers. */
+    val SETTINGS: Map<String, Set<String>> = mapOf(
+        "global" to setOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale", "disable_window_blurs"),
+        "secure" to setOf("high_text_contrast_enabled"),
+        "system" to setOf("peak_refresh_rate", "min_refresh_rate"),
+    )
+    val GLOBAL_SETTINGS = SETTINGS.getValue("global")
 
     fun isValidPackage(pkg: String) = pkg.length in 1..255 && PKG.matches(pkg)
 
@@ -72,15 +78,18 @@ object Commands {
     fun deviceIdleAdd(p: String) = listOf("cmd", "deviceidle", "whitelist", "+" + pkg(p))
     fun deviceIdleList() = listOf("cmd", "deviceidle", "whitelist")
 
-    fun settingsPut(key: String, value: String): List<String> {
-        require(key in GLOBAL_SETTINGS && value.matches(Regex("^[0-9.]{1,6}$")))
-        return listOf("settings", "put", "global", key, value)
+    fun settingsPut(key: String, value: String, namespace: String = "global"): List<String> {
+        require(key in SETTINGS[namespace].orEmpty() && value.matches(Regex("^[0-9.]{1,6}$")))
+        return listOf("settings", "put", namespace, key, value)
     }
 
-    fun settingsDelete(key: String): List<String> {
-        require(key in GLOBAL_SETTINGS)
-        return listOf("settings", "delete", "global", key)
+    fun settingsDelete(key: String, namespace: String = "global"): List<String> {
+        require(key in SETTINGS[namespace].orEmpty())
+        return listOf("settings", "delete", namespace, key)
     }
+
+    /** Runs Android's idle storage maintenance now: fstrim on the data partition plus database upkeep. */
+    fun idleMaintenance() = listOf("sm", "idle-maint", "run")
 
     /** Asks the system to free cache space from all apps (same mechanism Android uses when storage runs low). */
     fun trimCaches() = listOf("pm", "trim-caches", "9999G")

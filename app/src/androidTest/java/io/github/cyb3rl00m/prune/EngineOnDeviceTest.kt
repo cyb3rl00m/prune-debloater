@@ -129,6 +129,28 @@ class EngineOnDeviceTest {
         assertEquals(e2.message, true, e2.success)
     }
 
+    @Test fun secureAndSystemSettingsRoundTrip() {
+        val contrast = repo.optimizer.contrastChange(true)
+        val c1 = applyOne(contrast)
+        assertTrue(c1.message, c1.success == true)
+        assertTrue(repo.optimizer.displayState().highContrast)
+        val c2 = applyOne(Inverse.of(c1.change, c1.before)!!)
+        assertTrue(c2.message, c2.success == true)
+        assertEquals(c1.before == "1", repo.optimizer.displayState().highContrast)
+
+        val peak = repo.optimizer.refreshRateChanges(io.github.cyb3rl00m.prune.core.optimize.RefreshMode.CAP_60, 60f).first()
+        val p1 = applyOne(peak)
+        assertTrue(p1.message, p1.success == true)
+        assertEquals("60.0", repo.optimizer.displayState().peak)
+        val p2 = applyOne(Inverse.of(p1.change, p1.before)!!)
+        assertTrue(p2.message, p2.success == true)
+    }
+
+    @Test fun storageMaintenanceRuns() {
+        val e = applyOne(repo.optimizer.idleMaintenanceChange())
+        assertTrue(e.message, e.success == true)
+    }
+
     @Test fun selfGrantPermissions() {
         repo.access.testShell = shell
         repo.access.refresh()

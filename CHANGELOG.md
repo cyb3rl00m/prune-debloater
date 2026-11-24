@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.0 — unreleased
+
+**Fixed**
+- Shizuku: on some phones (reported on Xiaomi HyperOS) Prune's Shizuku user service never connected, so every change waited 15 seconds and failed. Prune now falls back to running commands through Shizuku's own process, the same path other Shizuku apps use.
+- Prune checks the connection once before applying anything. If it cannot run commands, it stops and says that nothing was changed, instead of failing every change after a timeout.
+- A failed disable no longer claims "Uninstalled for this user instead" when the fallback did not run or did not work. The message now describes what really happened.
+- "Authorize Prune in Shizuku" did nothing after the user had tapped Deny once. Prune now detects this and explains how to allow it in Shizuku.
+- "Get Shizuku" opened the app store first, and some store clients (Aurora Store) looped on it. Prune now links to Shizuku's GitHub releases first.
+
+**New**
+- Set up → Test connection: shows whether Prune can run commands, the uid and which Shizuku path it uses. Useful for bug reports.
+- Android TV and Google TV (experimental): Prune appears in the TV launcher, works with the remote's D-pad, detects TVs and has TV rules that lock the home screen, TV Settings, setup and the infrared service.
+- Display and effects: refresh rate (adaptive, always maximum, cap at 60 Hz), window blur off, high contrast text.
+- Animation speed 0.25×.
+- Storage maintenance: runs Android's idle maintenance (fstrim) now.
+- Quick Settings tiles: fast animations on/off and clear all app caches.
+
+**Tests**
+- CI now starts the real Shizuku app on the emulator and tests Prune's Shizuku code path in debug and release builds, and runs the release build on the Android TV emulator with D-pad input only.
+
 ## 2.0.0 — 2026-11-21
 
 Prune becomes a universal Android debloater.

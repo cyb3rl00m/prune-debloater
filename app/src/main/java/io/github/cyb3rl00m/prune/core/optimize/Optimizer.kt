@@ -30,6 +30,13 @@ enum class OptimizationSection(val title: String, val why: String, val requireme
             "(Developer options) multiply their duration. 0.5× halves the time you wait for each transition. It makes " +
             "the phone feel faster; it does not make the processor faster.",
         "Shizuku, root, or ADB (WRITE_SECURE_SETTINGS)"),
+    DISPLAY(
+        "Display and effects",
+        "Refresh rate: Android lowers the refresh rate when the screen is static to save battery. Locking the maximum " +
+            "keeps scrolling smooth everywhere but costs battery; capping at 60 Hz saves battery. Window blur (Android 12+) " +
+            "is drawn by the GPU behind dialogs and the notification shade; turning it off saves a little GPU work on " +
+            "weaker phones. High contrast text draws text with an outline so it is easier to read.",
+        "Shizuku or root (blur and contrast also work with WRITE_SECURE_SETTINGS)"),
     BACKGROUND(
         "Background activity",
         "Apps can run jobs, alarms and services in the background even when you never open them. Setting the " +
@@ -73,6 +80,8 @@ enum class OptimizationSection(val title: String, val why: String, val requireme
             "compiles the hot code paths of every app with its usage profile. Takes several minutes and uses battery.",
         "Shizuku or root"),
 }
+
+enum class RefreshMode { DEFAULT, ALWAYS_MAX, CAP_60 }
 
 data class AnimationState(val window: Float, val transition: Float, val animator: Float) {
     val uniform: Float? get() = if (window == transition && transition == animator) window else null
@@ -216,6 +225,67 @@ class Optimizer(private val context: Context) {
     fun trimCachesChange() = PlannedChange(type = ChangeType.TRIM_CACHES, label = "Clear cached files of all apps",
         explanation = OptimizationSection.STORAGE.why)
 
+    fun idleMaintenanceChange() = PlannedChange(type = ChangeType.IDLE_MAINT,
+        label = "Run storage maintenance now (fstrim)",
+        explanation = "Android normally runs storage maintenance at night while charging: it tells the flash storage which " +
+            "blocks are free (fstrim), which keeps write speed up on a full phone, and tidies its databases. This runs the same " +
+            "job now (sm idle-maint run). It is harmless and changes no data; on a phone that already ran it there is little effect.")
+
+    data class DisplayState(
+        val refreshRates: List<Float>,
+        val peak: String?,
+        val min: String?,
+        val blurSupported: Boolean,
+        val blurDisabled: Boolean,
+        val highContrast: Boolean,
+    )
+
+    fun displayState(): DisplayState {
+        val cr = context.contentResolver
+        val rates = runCatching {
+            context.getSystemService(android.hardware.display.DisplayManager::class.java)
+                .getDisplay(android.view.Display.DEFAULT_DISPLAY).supportedModes.map { Math.round(it.refreshRate).toFloat() }
+        }.getOrDefault(emptyList()).distinct().sorted()
+        return DisplayState(
+            refreshRates = rates,
+            peak = runCatching { Settings.System.getString(cr, KEY_PEAK) }.getOrNull(),
+            min = runCatching { Settings.System.getString(cr, KEY_MIN) }.getOrNull(),
+            blurSupported = Build.VERSION.SDK_INT >= 31,
+            blurDisabled = runCatching { Settings.Global.getInt(cr, KEY_BLUR, 0) == 1 }.getOrDefault(false),
+            highContrast = runCatching { Settings.Secure.getInt(cr, KEY_CONTRAST, 0) == 1 }.getOrDefault(false),
+        )
+    }
+
+    private fun setting(ns: String, key: String, value: String?, label: String, extra: String = "") = PlannedChange(
+        type = ChangeType.SETTING_PUT, label = label,
+        params = buildMap { put("ns", ns); put("key", key); value?.let { put("value", it) } },
+        explanation = OptimizationSection.DISPLAY.why + extra,
+    )
+
+    /** [hz] null = Android's default (adaptive). */
+    fun refreshRateChanges(mode: RefreshMode, maxHz: Float): List<PlannedChange> {
+        val note = "\n\nSome firmwares (Samsung One UI, for example) use their own refresh-rate setting and may ignore this one. " +
+            "Prune checks that the setting was saved, not the screen's actual refresh rate."
+        val max = maxHz.toString()
+        return when (mode) {
+            RefreshMode.DEFAULT -> listOf(
+                setting("system", KEY_PEAK, null, "Peak refresh rate → system default", note),
+                setting("system", KEY_MIN, null, "Minimum refresh rate → system default", note))
+            RefreshMode.ALWAYS_MAX -> listOf(
+                setting("system", KEY_PEAK, max, "Peak refresh rate → ${maxHz.toInt()} Hz", note),
+                setting("system", KEY_MIN, max, "Minimum refresh rate → ${maxHz.toInt()} Hz (always max)", note))
+            RefreshMode.CAP_60 -> listOf(
+                setting("system", KEY_PEAK, "60.0", "Peak refresh rate → 60 Hz", note),
+                setting("system", KEY_MIN, null, "Minimum refresh rate → system default", note))
+        }
+    }
+
+    fun blurChange(disable: Boolean) = setting("global", KEY_BLUR, if (disable) "1" else "0",
+        if (disable) "Window blur → off" else "Window blur → on")
+
+    fun contrastChange(on: Boolean) = setting("secure", KEY_CONTRAST, if (on) "1" else "0",
+        if (on) "High contrast text → on" else "High contrast text → off")
+
     fun dexoptChange() = PlannedChange(type = ChangeType.DEXOPT, label = "Compile apps now (background dexopt)",
         explanation = OptimizationSection.COMPILATION.why)
 
@@ -270,6 +340,10 @@ class Optimizer(private val context: Context) {
         const val KEY_WINDOW = "window_animation_scale"
         const val KEY_TRANSITION = "transition_animation_scale"
         const val KEY_ANIMATOR = "animator_duration_scale"
+        const val KEY_PEAK = "peak_refresh_rate"
+        const val KEY_MIN = "min_refresh_rate"
+        const val KEY_BLUR = "disable_window_blurs"
+        const val KEY_CONTRAST = "high_text_contrast_enabled"
         private const val DAY = 24L * 60 * 60 * 1000
 
         val SENSITIVE: Map<String, PermissionInfoItem> = listOf(

@@ -141,5 +141,6 @@ enum class ChangeType(val label: String, val reversible: Boolean = true) {
     DEVICEIDLE_ADD("Restore battery exemption"),
     SETTING_PUT("Change setting"),
     TRIM_CACHES("Clear app caches", reversible = false),
-    DEXOPT("Optimize apps", reversible = false);
+    DEXOPT("Optimize apps", reversible = false),
+    IDLE_MAINT("Storage maintenance", reversible = false);
 }
