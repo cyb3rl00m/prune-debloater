@@ -61,7 +61,8 @@ class EngineOnDeviceTest {
         assertEquals(io.github.cyb3rl00m.prune.core.oem.EmulatorIntegration, d.integration)
         assertTrue("getprop returned properties", d.identity.props.size > 50)
         assertTrue(d.services.gms)
-        assertEquals("all rule files load", 9, repo.database.files.size)
+        val listed = Regex("\"([a-z_]+\\.json)\"").findAll(context.assets.open("rules/index.json").bufferedReader().readText()).count()
+        assertEquals("all rule files load", listed, repo.database.files.size)
         val report = io.github.cyb3rl00m.prune.core.oem.CompatibilityReport.build(d.fullName, d.identity, d.integration,
             d.firmware, d.services, io.github.cyb3rl00m.prune.core.oem.AccessSnapshot("test", true, false, false, false, false, true, true),
             repo.history.state.value)

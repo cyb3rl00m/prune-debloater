@@ -152,5 +152,8 @@ class OemIntegrationTest {
         // Phones are never treated as TVs.
         assertSame(GooglePixelIntegration, OemRegistry.detect(MockDevices.pixel))
         assertTrue(!MockDevices.pixel.isTv && MockDevices.googleTvStreamer.isTv)
+        // TVs whose build characteristics don't say "tv" (the TV emulator says "emulator") are found by UI mode.
+        val byUiMode = MockDevices.device("Sony", "Sony", "BRAVIA 4K VH2", 33, "13", mapOf(DeviceIdentity.TV_UI_MODE_PROP to "1"))
+        assertSame(AndroidTvIntegration, OemRegistry.detect(byUiMode))
     }
 }

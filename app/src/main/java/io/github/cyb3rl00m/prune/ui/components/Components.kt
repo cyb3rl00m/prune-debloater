@@ -1,5 +1,10 @@
 package io.github.cyb3rl00m.prune.ui.components
 
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.BorderStroke
 import android.content.pm.PackageManager
 import android.util.LruCache
 import androidx.compose.animation.animateContentSize
@@ -62,11 +67,15 @@ fun PruneCard(
     padding: PaddingValues = PaddingValues(18.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // D-pad / keyboard focus (TV remotes): a clear outline, since the default focus highlight is barely visible.
+    var focused by remember { mutableStateOf(false) }
     Surface(
-        modifier = modifier.fillMaxWidth().then(if (onClick != null) Modifier.clip(MaterialTheme.shapes.large).clickable(onClick = onClick) else Modifier),
+        modifier = modifier.fillMaxWidth().then(if (onClick != null) Modifier.clip(MaterialTheme.shapes.large)
+            .onFocusChanged { focused = it.isFocused }.clickable(onClick = onClick) else Modifier),
         shape = MaterialTheme.shapes.large,
         color = color,
         tonalElevation = 0.dp,
+        border = if (focused) BorderStroke(3.dp, MaterialTheme.colorScheme.primary) else null,
     ) {
         Column(Modifier.padding(padding).animateContentSize(), content = content)
     }

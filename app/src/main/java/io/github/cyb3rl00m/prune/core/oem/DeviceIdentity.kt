@@ -27,7 +27,7 @@ data class DeviceIdentity(
 
     /** Android TV / Google TV device (TV boxes, streamers, TVs). */
     val isTv: Boolean
-        get() = prop("ro.build.characteristics")?.split(',')?.any { it.trim() == "tv" } == true
+        get() = prop(TV_UI_MODE_PROP) == "1" || prop("ro.build.characteristics")?.split(',')?.any { it.trim() == "tv" } == true
 
     /** True on the Android emulator (no OEM firmware, used for Prune's automated tests). */
     val isEmulator: Boolean
@@ -51,7 +51,15 @@ data class DeviceIdentity(
         )
 
         /** Values only reachable through manufacturer classes, exposed as properties so detection stays pure. */
+        /** Synthetic property: "1" when the system UI mode is television (set on every Android TV device). */
+        const val TV_UI_MODE_PROP = "prune.ui_mode_tv"
+
         private fun synthetic(): Map<String, String> = buildMap {
+            runCatching {
+                val type = android.content.res.Resources.getSystem().configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_TYPE_MASK
+                if (type == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION) put(TV_UI_MODE_PROP, "1")
+            }
             runCatching { Build.VERSION::class.java.getField("SEM_PLATFORM_INT").getInt(null) }
                 .getOrNull()?.let { put(SamsungIntegration.SEM_PLATFORM_PROP, it.toString()) }
             runCatching {
