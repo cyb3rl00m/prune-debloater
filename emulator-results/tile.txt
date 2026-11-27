@@ -1,0 +1,1 @@
+window_animation_scale after tile click: 0.5

@@ -1,0 +1,7 @@
+11-27 17:56:32.234  5175  5175 I AndroidJUnitRunner: newApplication io.github.cyb3rl00m.prune.PruneApp
+11-27 17:56:34.804  5175  5190 I PruneShizukuTest: Shizuku server version 13, uid 2000
+11-27 17:56:37.832  5175  5190 I PruneShizukuTest: disable com.android.egg via user service: 0 Package com.android.egg new state: disabled-user
+11-27 17:56:39.893  5175  5190 I PruneShizukuTest: Shizuku server version 13, uid 2000
+11-27 17:56:40.694  5175  5190 I PruneShizukuTest: id via user service in 801 ms: exit 0 uid=2000(shell) gid=2000(shell) groups=2000(shell),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),1078(ext_data_rw),1079(ext_obb_rw),3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc),3011(uhid),3012(readtracefs) context=u:r:shell:s0; user service error: null
+11-27 17:56:42.988  5175  5190 I PruneShizukuTest: Shizuku server version 13, uid 2000
+11-27 17:56:43.036  5175  5190 I PruneShizukuTest: id via Shizuku process in 47 ms: exit 0 uid=2000(shell) gid=2000(shell) groups=2000(shell),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r),1078(ext_data_rw),1079(ext_obb_rw),3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc),3011(uhid),3012(readtracefs) context=u:r:shell:s0; user service error: null

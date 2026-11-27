@@ -1,0 +1,1 @@
+Connected: uid 2000 (shell) via Shizuku user service, 606 ms.
