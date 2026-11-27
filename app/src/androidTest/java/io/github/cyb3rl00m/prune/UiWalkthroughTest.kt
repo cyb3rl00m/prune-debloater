@@ -114,11 +114,19 @@ class UiWalkthroughTest {
     }
 
     @Test fun lightTheme() {
-        Shots.shell("cmd uimode night no")
-        waitScan()
-        rule.waitForIdle()
-        waitTag("screen_home")
-        Shots.take("16-home-light")
-        click("tab_debloat"); waitTag("screen_debloat"); Shots.take("17-debloat-light")
+        // Use Prune's own theme setting: `cmd uimode night no` does not reach an already running activity.
+        kotlinx.coroutines.runBlocking { repo.settings.setTheme(io.github.cyb3rl00m.prune.core.settings.ThemeMode.LIGHT) }
+        try {
+            waitScan()
+            rule.waitForIdle()
+            waitTag("screen_home")
+            Thread.sleep(500)
+            Shots.take("16-home-light")
+            click("tab_debloat"); waitTag("screen_debloat"); rule.waitForIdle(); Shots.take("17-debloat-light")
+            click("tab_apps"); waitTag("screen_apps"); Thread.sleep(500); Shots.take("18-packages-light")
+            click("tab_optimize"); waitTag("screen_optimize"); Shots.take("19-optimize-light")
+        } finally {
+            kotlinx.coroutines.runBlocking { repo.settings.setTheme(io.github.cyb3rl00m.prune.core.settings.ThemeMode.SYSTEM) }
+        }
     }
 }
