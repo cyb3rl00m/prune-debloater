@@ -1,5 +1,6 @@
 package io.github.cyb3rl00m.prune.ui.screens
 
+import io.github.cyb3rl00m.prune.ui.theme.LocalRiskColors
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,10 +49,10 @@ import io.github.cyb3rl00m.prune.ui.components.rememberTextExporter
 
 @Composable
 fun compatColor(level: CompatLevel): Color = when (level) {
-    CompatLevel.TESTED -> MaterialTheme.colorScheme.primary
-    CompatLevel.PARTIAL -> Color(0xFF5CC8FF)
+    CompatLevel.TESTED -> LocalRiskColors.current.safe
+    CompatLevel.PARTIAL -> MaterialTheme.colorScheme.onSurface
     CompatLevel.EXPERIMENTAL -> MaterialTheme.colorScheme.tertiary
-    CompatLevel.GENERIC -> MaterialTheme.colorScheme.secondary
+    CompatLevel.GENERIC -> MaterialTheme.colorScheme.onSurfaceVariant
     CompatLevel.UNSUPPORTED -> MaterialTheme.colorScheme.error
 }
 

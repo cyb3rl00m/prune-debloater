@@ -124,19 +124,25 @@ fun PruneRoot(vm: AppViewModel) {
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
             if (tabs.any { it.route == route }) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-                    tabs.forEach { t ->
-                        NavigationBarItem(
-                            selected = route == t.route,
-                            onClick = { nav.tab(t.route) },
-                            icon = { Icon(t.icon, null) },
-                            label = { Text(t.label) },
-                            modifier = Modifier.testTag("tab_${t.route}"),
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            ),
-                        )
+                androidx.compose.foundation.layout.Column {
+                    androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
+                        tabs.forEach { t ->
+                            NavigationBarItem(
+                                selected = route == t.route,
+                                onClick = { nav.tab(t.route) },
+                                icon = { Icon(t.icon, null) },
+                                label = { Text(t.label) },
+                                modifier = Modifier.testTag("tab_${t.route}"),
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -145,7 +151,15 @@ fun PruneRoot(vm: AppViewModel) {
         val bottomPadding = PaddingValues(bottom = padding.calculateBottomPadding())
         // Wide screens (tablets, TVs): keep the phone layout readable instead of stretching it edge to edge.
         Box(Modifier.fillMaxSize().padding(bottomPadding).consumeWindowInsets(bottomPadding), contentAlignment = Alignment.TopCenter) {
-            NavHost(controller, startDestination = Routes.HOME, modifier = Modifier.widthIn(max = 840.dp)) {
+            NavHost(controller, startDestination = Routes.HOME, modifier = Modifier.widthIn(max = 840.dp),
+                // Short, quiet transitions: a quick cross-fade with a small shift, instead of the default zoom.
+                enterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180, delayMillis = 40)) +
+                    androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(220)) { it / 40 } },
+                exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) },
+                popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180, delayMillis = 40)) },
+                popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(120)) +
+                    androidx.compose.animation.slideOutVertically(androidx.compose.animation.core.tween(160)) { it / 40 } },
+            ) {
                 composable(Routes.HOME) { HomeScreen(vm, nav) }
                 composable(Routes.DEBLOAT) { DebloatScreen(vm, nav) }
                 composable(Routes.APPS) { AppsScreen(vm, nav) }

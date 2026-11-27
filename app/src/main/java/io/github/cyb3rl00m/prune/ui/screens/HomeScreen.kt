@@ -38,7 +38,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,17 +82,15 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
         },
     ) {
         item {
-            val brush = Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
-                MaterialTheme.colorScheme.secondary.copy(alpha = 0.20f)))
             PruneCard(onClick = { nav.go(Routes.COMPAT) }, padding = androidx.compose.foundation.layout.PaddingValues(0.dp),
                 modifier = Modifier.testTag("device_card")) {
-                Box(Modifier.fillMaxWidth().background(brush).padding(20.dp)) {
+                Box(Modifier.fillMaxWidth().padding(18.dp)) {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Smartphone, null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Outlined.Smartphone, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(device?.brandName ?: "Detecting device…",
-                                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary,
+                            Text((device?.brandName ?: "Detecting device…").uppercase(),
+                                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.weight(1f))
                             device?.let { Pill(it.compat.label, compatColor(it.compat)) }
                         }
@@ -218,7 +215,7 @@ fun HomeScreen(vm: AppViewModel, nav: Nav) {
 
 @Composable
 fun AccessCard(active: AccessKind, privileged: Boolean, onSetup: () -> Unit) {
-    PruneCard(onClick = onSetup, color = if (privileged) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.secondaryContainer) {
+    PruneCard(onClick = onSetup, color = if (privileged) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerHigh) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.Shield, null, tint = if (privileged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondaryContainer)
             Spacer(Modifier.width(12.dp))

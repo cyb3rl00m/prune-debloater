@@ -56,6 +56,9 @@ import io.github.cyb3rl00m.prune.core.model.AppPackage
 import io.github.cyb3rl00m.prune.core.model.PackageStatus
 import io.github.cyb3rl00m.prune.core.model.Risk
 import io.github.cyb3rl00m.prune.ui.theme.LocalRiskColors
+import io.github.cyb3rl00m.prune.ui.theme.NumberStyle
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxHeight
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -64,7 +67,7 @@ fun PruneCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     color: Color = MaterialTheme.colorScheme.surfaceContainer,
-    padding: PaddingValues = PaddingValues(18.dp),
+    padding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // D-pad / keyboard focus (TV remotes): a clear outline, since the default focus highlight is barely visible.
@@ -75,7 +78,9 @@ fun PruneCard(
         shape = MaterialTheme.shapes.large,
         color = color,
         tonalElevation = 0.dp,
-        border = if (focused) BorderStroke(3.dp, MaterialTheme.colorScheme.primary) else null,
+        // Flat card with a hairline edge; D-pad focus thickens the edge instead of adding a glow.
+        border = if (focused) BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface)
+            else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(Modifier.padding(padding).animateContentSize(), content = content)
     }
@@ -93,14 +98,15 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier, action: (@Compos
 @Composable
 fun Pill(text: String, color: Color, modifier: Modifier = Modifier, icon: ImageVector? = null) {
     Row(
-        modifier.clip(RoundedCornerShape(50)).background(color.copy(alpha = 0.16f)).padding(horizontal = 9.dp, vertical = 3.dp),
+        modifier.clip(RoundedCornerShape(4.dp)).border(1.dp, color.copy(alpha = 0.45f), RoundedCornerShape(4.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
             Icon(icon, null, tint = color, modifier = Modifier.size(12.dp))
             Spacer(Modifier.width(4.dp))
         }
-        Text(text, color = color, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        Text(text, color = color, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, maxLines = 1)
     }
 }
 
@@ -114,7 +120,7 @@ fun StatusBadge(status: PackageStatus, modifier: Modifier = Modifier) {
     val c = when (status) {
         PackageStatus.ENABLED -> MaterialTheme.colorScheme.onSurfaceVariant
         PackageStatus.DISABLED -> MaterialTheme.colorScheme.tertiary
-        PackageStatus.REMOVED -> MaterialTheme.colorScheme.secondary
+        PackageStatus.REMOVED -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     Pill(status.label, c, modifier)
 }
@@ -130,11 +136,15 @@ enum class BannerKind { INFO, WARNING, ERROR }
 fun Banner(text: String, kind: BannerKind = BannerKind.INFO, modifier: Modifier = Modifier, title: String? = null,
            action: (@Composable () -> Unit)? = null) {
     val (color, icon) = when (kind) {
-        BannerKind.INFO -> MaterialTheme.colorScheme.secondary to Icons.Outlined.Info
+        BannerKind.INFO -> MaterialTheme.colorScheme.onSurfaceVariant to Icons.Outlined.Info
         BannerKind.WARNING -> MaterialTheme.colorScheme.tertiary to Icons.Outlined.WarningAmber
         BannerKind.ERROR -> MaterialTheme.colorScheme.error to Icons.Outlined.ErrorOutline
     }
-    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = color.copy(alpha = 0.12f)) {
+    // A plain note: neutral background and a thin coloured rule on the left. No tinted fill.
+    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min)) {
+            Box(Modifier.width(3.dp).fillMaxHeight().background(color))
         Row(Modifier.padding(14.dp)) {
             Icon(icon, null, tint = color, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(12.dp))
@@ -147,18 +157,21 @@ fun Banner(text: String, kind: BannerKind = BannerKind.INFO, modifier: Modifier 
                 }
             }
         }
+        }
     }
 }
 
 @Composable
 fun StatTile(value: String, label: String, icon: ImageVector, modifier: Modifier = Modifier, accent: Color = MaterialTheme.colorScheme.primary) {
-    Surface(modifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer) {
-        Column(Modifier.padding(16.dp)) {
-            Box(Modifier.size(34.dp).clip(RoundedCornerShape(11.dp)).background(accent.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = accent, modifier = Modifier.size(19.dp))
+    // Number first, label underneath, a small grey icon. [accent] is kept for callers but no longer tints anything.
+    Surface(modifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(value, style = NumberStyle, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
             }
-            Spacer(Modifier.height(12.dp))
-            Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.height(4.dp))
             Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
         }
     }
@@ -220,7 +233,7 @@ fun PackageRow(
                 RiskBadge(app.risk)
                 if (showStatus && app.status != PackageStatus.ENABLED) StatusBadge(app.status)
                 if (app.classification.warnings.any { it.groupKey != "IN_USE" }) {
-                    Pill(app.classification.warnings.first { it.groupKey != "IN_USE" }.title, MaterialTheme.colorScheme.secondary)
+                    Pill(app.classification.warnings.first { it.groupKey != "IN_USE" }.title, MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

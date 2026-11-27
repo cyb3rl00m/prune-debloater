@@ -1,6 +1,7 @@
 package io.github.cyb3rl00m.prune.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.cyb3rl00m.prune.core.model.RemovalMethod
 import io.github.cyb3rl00m.prune.core.plan.DebloatLevel
@@ -87,16 +89,13 @@ fun DebloatScreen(vm: AppViewModel, nav: Nav) {
 
 @Composable
 private fun LevelCard(level: DebloatLevel, count: Int, onClick: () -> Unit) {
-    val accent = when (level) {
-        DebloatLevel.MINIMAL -> MaterialTheme.colorScheme.primary
-        DebloatLevel.BALANCED -> androidx.compose.ui.graphics.Color(0xFF5CC8FF)
-        DebloatLevel.AGGRESSIVE -> MaterialTheme.colorScheme.tertiary
-        DebloatLevel.CUSTOM -> MaterialTheme.colorScheme.error
-    }
+    // Levels differ by number and wording, not by colour; only Custom (expert) gets the warning colour.
+    val accent = if (level == DebloatLevel.CUSTOM) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
     PruneCard(onClick = onClick, modifier = Modifier.testTag("level_${level.number}")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(accent.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
-                Text(level.number.toString(), style = MaterialTheme.typography.titleLarge, color = accent, fontWeight = FontWeight.Bold)
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(6.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {
+                Text(level.number.toString(), style = io.github.cyb3rl00m.prune.ui.theme.MonoStyle.copy(fontSize = 18.sp), color = accent)
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
@@ -104,7 +103,7 @@ private fun LevelCard(level: DebloatLevel, count: Int, onClick: () -> Unit) {
                 Text(level.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(count.toString(), style = MaterialTheme.typography.titleLarge, color = accent)
+                Text(count.toString(), style = io.github.cyb3rl00m.prune.ui.theme.MonoStyle.copy(fontSize = 20.sp), color = MaterialTheme.colorScheme.onSurface)
                 Text(if (level == DebloatLevel.CUSTOM) "pre-selected" else "packages", style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

@@ -19,67 +19,72 @@ import androidx.compose.ui.unit.sp
 import io.github.cyb3rl00m.prune.core.model.Risk
 import io.github.cyb3rl00m.prune.core.settings.ThemeMode
 
-private val Mint = Color(0xFF3DDC97)
-private val MintDeep = Color(0xFF0E9F6E)
-private val Violet = Color(0xFF7C6CFF)
-private val VioletDeep = Color(0xFF5B4BDB)
+// "Graphite": neutral greys without a blue cast, ink-coloured primary actions and a few muted signal colours.
+// Colour is reserved for meaning (risk, warnings, errors); everything else is grey.
+private val Ink = Color(0xFF1B1B1A)
+private val Paper = Color(0xFFE7E5E1)
 
 private val DarkColors = darkColorScheme(
-    primary = Mint,
-    onPrimary = Color(0xFF00281A),
-    primaryContainer = Color(0xFF0F3B2C),
-    onPrimaryContainer = Color(0xFFB6F5D8),
-    secondary = Violet,
-    onSecondary = Color(0xFF14104A),
-    secondaryContainer = Color(0xFF2A2463),
-    onSecondaryContainer = Color(0xFFE1DCFF),
-    tertiary = Color(0xFFFFB547),
-    onTertiary = Color(0xFF2E1B00),
-    background = Color(0xFF0B0F17),
-    onBackground = Color(0xFFE8EEF7),
-    surface = Color(0xFF0B0F17),
-    onSurface = Color(0xFFE8EEF7),
-    surfaceVariant = Color(0xFF1B2433),
-    onSurfaceVariant = Color(0xFFA9B4C6),
-    surfaceContainerLowest = Color(0xFF080B11),
-    surfaceContainerLow = Color(0xFF10161F),
-    surfaceContainer = Color(0xFF141B27),
-    surfaceContainerHigh = Color(0xFF1A2230),
-    surfaceContainerHighest = Color(0xFF212B3B),
-    outline = Color(0xFF3A4659),
-    outlineVariant = Color(0xFF263042),
-    error = Color(0xFFFF5C6C),
-    onError = Color(0xFF3A0008),
-    errorContainer = Color(0xFF4A1119),
-    onErrorContainer = Color(0xFFFFD9DC),
+    primary = Paper,
+    onPrimary = Color(0xFF151515),
+    primaryContainer = Color(0xFF2B2B2A),
+    onPrimaryContainer = Paper,
+    secondary = Color(0xFFB4B1AB),
+    onSecondary = Color(0xFF151515),
+    secondaryContainer = Color(0xFF242423),
+    onSecondaryContainer = Paper,
+    tertiary = Color(0xFFC9A55F),
+    onTertiary = Color(0xFF1E1606),
+    tertiaryContainer = Color(0xFF2E281C),
+    onTertiaryContainer = Color(0xFFE9D9B6),
+    background = Color(0xFF151515),
+    onBackground = Paper,
+    surface = Color(0xFF151515),
+    onSurface = Paper,
+    surfaceVariant = Color(0xFF242423),
+    onSurfaceVariant = Color(0xFF9D9A95),
+    surfaceContainerLowest = Color(0xFF101010),
+    surfaceContainerLow = Color(0xFF181818),
+    surfaceContainer = Color(0xFF1B1B1B),
+    surfaceContainerHigh = Color(0xFF222222),
+    surfaceContainerHighest = Color(0xFF2A2A29),
+    outline = Color(0xFF4A4947),
+    outlineVariant = Color(0xFF2C2C2B),
+    error = Color(0xFFD27561),
+    onError = Color(0xFF240A05),
+    errorContainer = Color(0xFF34201B),
+    onErrorContainer = Color(0xFFF1D1C8),
 )
 
 private val LightColors = lightColorScheme(
-    primary = MintDeep,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFC8F4DF),
-    onPrimaryContainer = Color(0xFF00321F),
-    secondary = VioletDeep,
+    primary = Ink,
+    onPrimary = Color(0xFFF5F4F1),
+    primaryContainer = Color(0xFFE4E2DD),
+    onPrimaryContainer = Ink,
+    secondary = Color(0xFF5E5C58),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE4E0FF),
-    onSecondaryContainer = Color(0xFF17106A),
-    tertiary = Color(0xFFB86E00),
-    background = Color(0xFFF4F6FA),
-    onBackground = Color(0xFF0E1420),
-    surface = Color(0xFFF4F6FA),
-    onSurface = Color(0xFF0E1420),
-    surfaceVariant = Color(0xFFE2E7F0),
-    onSurfaceVariant = Color(0xFF4A5568),
+    secondaryContainer = Color(0xFFE9E7E2),
+    onSecondaryContainer = Ink,
+    tertiary = Color(0xFF8A6A2A),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFF1E8D4),
+    onTertiaryContainer = Color(0xFF3A2C0E),
+    background = Color(0xFFF5F4F1),
+    onBackground = Ink,
+    surface = Color(0xFFF5F4F1),
+    onSurface = Ink,
+    surfaceVariant = Color(0xFFE9E7E2),
+    onSurfaceVariant = Color(0xFF64625D),
     surfaceContainerLowest = Color.White,
-    surfaceContainerLow = Color(0xFFFAFBFD),
-    surfaceContainer = Color.White,
-    surfaceContainerHigh = Color(0xFFEEF1F6),
-    surfaceContainerHighest = Color(0xFFE6EAF1),
-    outline = Color(0xFFB7C0CE),
-    outlineVariant = Color(0xFFDCE2EA),
-    error = Color(0xFFD32F45),
-    errorContainer = Color(0xFFFFDADF),
-    onErrorContainer = Color(0xFF410009),
+    surfaceContainerLow = Color(0xFFF9F8F6),
+    surfaceContainer = Color(0xFFFBFAF8),
+    surfaceContainerHigh = Color(0xFFEFEDE9),
+    surfaceContainerHighest = Color(0xFFE7E5E0),
+    outline = Color(0xFFB9B6AF),
+    outlineVariant = Color(0xFFE0DED8),
+    error = Color(0xFFA8432F),
+    errorContainer = Color(0xFFF5DDD6),
+    onErrorContainer = Color(0xFF3D1209),
 )
 
 @Immutable
@@ -94,33 +99,43 @@ data class RiskColors(val safe: Color, val low: Color, val moderate: Color, val 
     }
 }
 
-private val DarkRisk = RiskColors(Mint, Color(0xFF5CC8FF), Color(0xFFFFB547), Color(0xFFFF6B57), Color(0xFF8A94A6), Color(0xFFC59BFF))
-private val LightRisk = RiskColors(MintDeep, Color(0xFF0B84C6), Color(0xFFB86E00), Color(0xFFD1402B), Color(0xFF6B7587), Color(0xFF7A4FD0))
+// Muted, earthy signal colours: distinguishable, but none of them glows.
+private val DarkRisk = RiskColors(
+    safe = Color(0xFF94AD92), low = Color(0xFFA2ABB3), moderate = Color(0xFFC9A55F),
+    high = Color(0xFFD27561), locked = Color(0xFF7D7B77), unknown = Color(0xFFB3A994),
+)
+private val LightRisk = RiskColors(
+    safe = Color(0xFF4D6A4C), low = Color(0xFF56616B), moderate = Color(0xFF8A6A2A),
+    high = Color(0xFFA8432F), locked = Color(0xFF77746E), unknown = Color(0xFF6E6656),
+)
 
 val LocalRiskColors = staticCompositionLocalOf { DarkRisk }
 
 private val Shapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(18.dp),
-    large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(32.dp),
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(6.dp),
+    medium = RoundedCornerShape(8.dp),
+    large = RoundedCornerShape(10.dp),
+    extraLarge = RoundedCornerShape(14.dp),
 )
 
 private val Base = Typography()
 private val AppTypography = Typography(
-    displaySmall = Base.displaySmall.copy(fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-    headlineLarge = Base.headlineLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-    headlineMedium = Base.headlineMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
-    headlineSmall = Base.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
-    titleLarge = Base.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-    titleMedium = Base.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-    titleSmall = Base.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-    labelLarge = Base.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-    labelMedium = Base.labelMedium.copy(fontWeight = FontWeight.Medium),
+    displaySmall = Base.displaySmall.copy(fontWeight = FontWeight.Medium),
+    headlineLarge = Base.headlineLarge.copy(fontWeight = FontWeight.Medium),
+    headlineMedium = Base.headlineMedium.copy(fontWeight = FontWeight.Medium, fontSize = 26.sp),
+    headlineSmall = Base.headlineSmall.copy(fontWeight = FontWeight.Medium),
+    titleLarge = Base.titleLarge.copy(fontWeight = FontWeight.Medium),
+    titleMedium = Base.titleMedium.copy(fontWeight = FontWeight.Medium),
+    titleSmall = Base.titleSmall.copy(fontWeight = FontWeight.Medium),
+    labelLarge = Base.labelLarge.copy(fontWeight = FontWeight.Medium),
+    labelMedium = Base.labelMedium.copy(fontWeight = FontWeight.Medium, letterSpacing = 1.sp),
 )
 
 val MonoStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 12.sp, lineHeight = 17.sp)
+
+/** Numbers (counts, sizes): monospace, so they read like measurements rather than marketing. */
+val NumberStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 28.sp, lineHeight = 32.sp, fontWeight = FontWeight.Normal)
 
 @Composable
 fun PruneTheme(mode: ThemeMode = ThemeMode.SYSTEM, content: @Composable () -> Unit) {
